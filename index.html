@@ -2,11 +2,24 @@
 <html lang="ro">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HTML Lab V3.0</title><link rel="stylesheet" href="style.css">
+<title>HTML Lab V3.1</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.0</b></header>
+<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.1</b></header>
 <main>
+<section class="graph">
+<div>
+<h2>Microsoft Teams – Temele mele</h2>
+<p id="account">Neconectat la Microsoft Graph.</p>
+</div>
+<div class="graph-actions">
+<button id="connect" class="primary">🔐 Conectare Microsoft</button>
+<button id="refreshAssignments" disabled>🔄 Actualizează temele</button>
+</div>
+<div id="graphStatus" class="graph-status"></div>
+<div id="assignments" class="assignments"><p class="muted">După conectare, aici vor apărea temele accesibile contului curent.</p></div>
+</section>
+
 <section class="bar file">
 <label>Numele lucrării:</label><input id="filename" value="lucrare.html">
 <button id="open">📂 Deschide .html</button><input id="picker" type="file" accept=".html,.htm,text/html" hidden>
@@ -20,8 +33,10 @@
 <div class="panel"><h2>Cod HTML</h2><textarea id="editor" spellcheck="false"></textarea></div>
 <div class="panel"><h2>Rezultat</h2><iframe id="preview" sandbox="allow-forms allow-modals"></iframe></div>
 </section>
-<p class="note"><b>V3.0:</b> „Descarcă .html” creează un fișier real, care poate fi predat profesorului. Salvarea automată locală rămâne activă.</p>
+<p class="note"><b>V3.1 etapa 1:</b> autentificare Microsoft + citirea temelor prin Microsoft Graph. Predarea fișierului va fi activată după validarea acestui pas.</p>
 </main>
 <script src="https://res.cdn.office.net/teams-js/2.56.0/js/MicrosoftTeams.min.js"></script>
-<script src="teams-init.js"></script><script src="app.js"></script>
+<script src="teams-init.js"></script>
+<script src="app.js"></script>
+<script type="module" src="graph.js"></script>
 </body></html>

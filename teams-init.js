@@ -1,1 +1,1 @@
-(async()=>{try{if(window.microsoftTeams&&microsoftTeams.app){await microsoftTeams.app.initialize();}}catch(e){console.info("HTML Lab rulează în browser.",e);}})();
+window.htmlLabTeamsReady=(async()=>{try{if(window.microsoftTeams&&microsoftTeams.app){await microsoftTeams.app.initialize();return await microsoftTeams.app.getContext();}}catch(e){console.info("HTML Lab rulează în browser.",e);}return null;})();
