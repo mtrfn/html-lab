@@ -1,61 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ro">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#2563eb">
-  <title>HTML Lab</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HTML Lab V3.0</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="app-header">
-    <div>
-      <h1>HTML Lab</h1>
-      <p>Colegiul Tehnic „Gheorghe Balș”</p>
-    </div>
-    <span class="badge">V1</span>
-  </header>
-
-  <main class="app-shell">
-    <section class="toolbar" aria-label="Instrumente">
-      <label for="exampleSelect">Exemplu:</label>
-      <select id="exampleSelect">
-        <option value="basic">Prima pagină</option>
-        <option value="headings">Titluri și paragrafe</option>
-        <option value="links">Linkuri</option>
-        <option value="lists">Liste</option>
-        <option value="table">Tabel</option>
-      </select>
-      <button id="runBtn" class="primary">▶ Rulează</button>
-      <button id="saveBtn">💾 Salvează</button>
-      <button id="resetBtn">↺ Reset</button>
-      <span id="status" role="status" aria-live="polite"></span>
-    </section>
-
-    <section class="workspace">
-      <article class="panel">
-        <div class="panel-title">
-          <h2>Cod HTML</h2>
-          <span>Scrie sau modifică exemplul</span>
-        </div>
-        <textarea id="codeEditor" spellcheck="false" aria-label="Editor cod HTML"></textarea>
-      </article>
-
-      <article class="panel">
-        <div class="panel-title">
-          <h2>Rezultat</h2>
-          <span>Previzualizare izolată</span>
-        </div>
-        <iframe id="preview" sandbox="allow-forms allow-modals" title="Previzualizare HTML"></iframe>
-      </article>
-    </section>
-
-    <p class="tip"><strong>Sfat:</strong> pe PC poți apăsa <kbd>Ctrl</kbd> + <kbd>Enter</kbd> pentru a rula codul.</p>
-  </main>
-
-  <footer>HTML Lab • versiune educațională</footer>
-  <script src="https://res.cdn.office.net/teams-js/2.56.0/js/MicrosoftTeams.min.js" integrity="sha384-ftygCQXhLMbuUBdLMhfAnIFTGb2SAYYAPD9iyq2LRkbWpKkEifAGD+qPVcPgthO2" crossorigin="anonymous"></script>
-  <script src="teams-init.js"></script>
-  <script src="app.js"></script>
-</body>
-</html>
+<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.0</b></header>
+<main>
+<section class="bar file">
+<label>Numele lucrării:</label><input id="filename" value="lucrare.html">
+<button id="open">📂 Deschide .html</button><input id="picker" type="file" accept=".html,.htm,text/html" hidden>
+<button id="download">📥 Descarcă .html</button>
+</section>
+<section class="bar">
+<select id="examples"><option value="basic">Prima pagină</option><option value="headings">Titluri și paragrafe</option><option value="lists">Liste</option><option value="table">Tabel</option></select>
+<button id="run" class="primary">▶ Rulează</button><button id="save">💾 Salvează local</button><button id="reset">↺ Reset</button><span id="status"></span>
+</section>
+<section class="work">
+<div class="panel"><h2>Cod HTML</h2><textarea id="editor" spellcheck="false"></textarea></div>
+<div class="panel"><h2>Rezultat</h2><iframe id="preview" sandbox="allow-forms allow-modals"></iframe></div>
+</section>
+<p class="note"><b>V3.0:</b> „Descarcă .html” creează un fișier real, care poate fi predat profesorului. Salvarea automată locală rămâne activă.</p>
+</main>
+<script src="https://res.cdn.office.net/teams-js/2.56.0/js/MicrosoftTeams.min.js"></script>
+<script src="teams-init.js"></script><script src="app.js"></script>
+</body></html>
