@@ -2,21 +2,35 @@ import { createNestablePublicClientApplication, InteractionRequiredAuthError } f
 
 const CLIENT_ID="186ef62f-0e5b-47c2-ab13-2a33600f55cd";
 const TENANT_ID="8850faa5-c5a4-4364-bf6e-7ee02b1f4789";
-const SCOPES=["User.Read","EduAssignments.ReadWrite","EduRoster.ReadBasic"];
+const SCOPES=["User.Read","EduAssignments.ReadWrite","EduRoster.ReadBasic","Files.ReadWrite"];
+
 const accountEl=document.getElementById("account"), statusEl=document.getElementById("graphStatus"),
  assignmentsEl=document.getElementById("assignments"), connectBtn=document.getElementById("connect"),
  refreshBtn=document.getElementById("refreshAssignments"), teamNameEl=document.getElementById("teamName"),
  teamHint=document.getElementById("teamHint"), selection=document.getElementById("selection"),
- selectedAssignment=document.getElementById("selectedAssignment"), submissionInfo=document.getElementById("submissionInfo");
-let pca=null, teamsInfo=null, currentToken=null, currentAssignments=[], selected=null;
+ selectedAssignment=document.getElementById("selectedAssignment"), submissionInfo=document.getElementById("submissionInfo"),
+ turnInActions=document.getElementById("turnInActions"), attachBtn=document.getElementById("attachWork"),
+ submitBtn=document.getElementById("submitWork"), turnInStatus=document.getElementById("turnInStatus");
+
+let pca=null, teamsInfo=null, currentToken=null, currentAssignments=[], selected=null, currentSubmission=null, attachedResource=null;
 
 function status(t,err=false){statusEl.textContent=t;statusEl.style.color=err?"#b42318":"#526078";}
+function turnStatus(t,kind=""){turnInStatus.textContent=t;turnInStatus.className=kind==="error"?"danger-note":kind==="success"?"success-note":"muted";}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function fmt(d){if(!d)return "—";try{return new Intl.DateTimeFormat("ro-RO",{dateStyle:"medium",timeStyle:"short"}).format(new Date(d));}catch{return d;}}
-async function graph(url,token){
- const r=await fetch("https://graph.microsoft.com/v1.0"+url,{headers:{Authorization:`Bearer ${token}`}});
+function cleanFileName(){
+ const input=document.getElementById("filename");
+ let n=(input.value||"lucrare.html").trim().replace(/[\\/:*?"<>|]/g,"_");
+ if(!/\.html?$/i.test(n))n+=".html";
+ input.value=n; return n;
+}
+async function graph(url,token,options={}){
+ const headers={Authorization:`Bearer ${token}`,...(options.headers||{})};
+ const r=await fetch(url.startsWith("https://")?url:"https://graph.microsoft.com/v1.0"+url,{...options,headers});
  if(!r.ok)throw new Error(`Graph ${r.status}: ${await r.text()}`);
- return r.status===204?null:r.json();
+ if(r.status===204)return null;
+ const ct=r.headers.get("content-type")||"";
+ return ct.includes("application/json")?r.json():r.text();
 }
 async function init(){
  teamsInfo=await (window.htmlLabTeamsReady||Promise.resolve(null));
@@ -27,31 +41,121 @@ async function init(){
  pca=await createNestablePublicClientApplication({auth:{clientId:CLIENT_ID,authority:`https://login.microsoftonline.com/${TENANT_ID}`,supportsNestedAppAuth:true}});
  status("Autentificarea este pregătită.");
 }
-function ctxAccount(){const h=teamsInfo?.context?.user?.loginHint;if(!h)return null;return pca.getAllAccounts().find(a=>(a.username||"").toLowerCase()===h.toLowerCase())||null;}
+function ctxAccount(){
+ const h=teamsInfo?.context?.user?.loginHint;
+ if(!h)return null;
+ return pca.getAllAccounts().find(a=>(a.username||"").toLowerCase()===h.toLowerCase())||null;
+}
 async function token(){
  let a=pca.getActiveAccount?.()||ctxAccount()||pca.getAllAccounts()[0]||null;
- try{return await pca.acquireTokenSilent({scopes:SCOPES,account:a});}
- catch(e){if(e instanceof InteractionRequiredAuthError||!a)return pca.acquireTokenPopup({scopes:SCOPES,loginHint:teamsInfo?.context?.user?.loginHint});throw e;}
+ try{
+  const r=await pca.acquireTokenSilent({scopes:SCOPES,account:a});
+  if(r.account)pca.setActiveAccount?.(r.account); return r;
+ }catch(e){
+  if(e instanceof InteractionRequiredAuthError||!a){
+   const r=await pca.acquireTokenPopup({scopes:SCOPES,loginHint:teamsInfo?.context?.user?.loginHint});
+   if(r.account)pca.setActiveAccount?.(r.account); return r;
+  }
+  throw e;
+ }
 }
 function render(items){
  currentAssignments=items;
+ selection.classList.add("hidden"); turnInActions.classList.add("hidden");
+ currentSubmission=null; attachedResource=null; submitBtn.disabled=true; turnStatus("");
  if(!items.length){assignmentsEl.innerHTML='<p class="muted">Nu au fost găsite teme pentru clasa curentă.</p>';return;}
  assignmentsEl.innerHTML=items.map((a,i)=>`<article class="assignment" data-i="${i}">
- <h3>${esc(a.displayName||"Temă fără titlu")}</h3><p><b>Termen:</b> ${esc(fmt(a.dueDateTime))}</p>
- <p><b>Stare:</b> ${esc(a.status||"—")}</p><button type="button">Selectează tema</button></article>`).join("");
+ <h3>${esc(a.displayName||"Temă fără titlu")}</h3>
+ <p><b>Termen:</b> ${esc(fmt(a.dueDateTime))}</p>
+ <p><b>Stare:</b> ${esc(a.status||"—")}</p>
+ <button type="button">Selectează tema</button></article>`).join("");
  assignmentsEl.querySelectorAll(".assignment").forEach(el=>el.onclick=()=>choose(Number(el.dataset.i),el));
 }
 async function choose(i,el){
- selected=currentAssignments[i];assignmentsEl.querySelectorAll(".assignment").forEach(x=>x.classList.remove("selected"));el.classList.add("selected");
- selection.classList.remove("hidden");selectedAssignment.innerHTML=`<b>${esc(selected.displayName)}</b><br>Termen: ${esc(fmt(selected.dueDateTime))}`;
- submissionInfo.textContent="Verific submission-ul contului curent…";
+ selected=currentAssignments[i]; currentSubmission=null; attachedResource=null; submitBtn.disabled=true; turnStatus("");
+ assignmentsEl.querySelectorAll(".assignment").forEach(x=>x.classList.remove("selected")); el.classList.add("selected");
+ selection.classList.remove("hidden"); turnInActions.classList.add("hidden");
+ selectedAssignment.innerHTML=`<b>${esc(selected.displayName)}</b><br>Termen: ${esc(fmt(selected.dueDateTime))}`;
+ submissionInfo.textContent="Verific tema și submission-ul contului curent…";
  try{
-  const d=await graph(`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions?$select=id,status,submittedDateTime,reassignedDateTime`,currentToken);
+  const fullAssignment=await graph(`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}?$select=id,classId,displayName,status,allowStudentsToAddResourcesToSubmission,allowLateSubmissions,dueDateTime,closeDateTime`,currentToken);
+  selected={...selected,...fullAssignment};
+  if(!selected.allowStudentsToAddResourcesToSubmission){
+   submissionInfo.textContent="Această temă nu permite elevilor să adauge fișiere proprii. Activează această opțiune în temă înainte de test.";
+   return;
+  }
+  const d=await graph(`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions?$select=id,status,submittedDateTime,reassignedDateTime,resourcesFolderUrl`,currentToken);
   const subs=d.value||[];
-  if(subs.length===1) submissionInfo.textContent=`Submission detectat: ${subs[0].status||"stare necunoscută"} (ID ${subs[0].id}).`;
-  else if(subs.length===0) submissionInfo.textContent="Nu există submission asociat acestui cont. Pentru un profesor acest lucru este normal; testul de predare se face cu un elev.";
-  else submissionInfo.textContent=`Au fost returnate ${subs.length} submissions. Contul pare a avea rol de profesor; pentru predare vom folosi un cont de elev.`;
+  if(subs.length!==1){
+   submissionInfo.textContent=subs.length===0
+    ?"Nu există submission asociat acestui cont. Pentru predare, deschide aplicația cu un cont de elev."
+    :`Au fost returnate ${subs.length} submissions. Acesta este un cont cu acces de profesor; V3.2 nu permite predarea din acest mod.`;
+   return;
+  }
+  currentSubmission=subs[0];
+  if(!["working","returned","reassigned"].includes(currentSubmission.status)){
+   submissionInfo.textContent=`Submission detectat, dar starea este „${currentSubmission.status}”. Pentru atașare trebuie să fie în lucru.`;
+   return;
+  }
+  submissionInfo.textContent=`Submission elev detectat: ${currentSubmission.status}. Poți atașa lucrarea HTML.`;
+  turnInActions.classList.remove("hidden");
  }catch(e){submissionInfo.textContent="Nu am putut verifica submission-ul: "+e.message;}
+}
+async function attachWork(){
+ if(!selected||!currentSubmission)return;
+ attachBtn.disabled=true; submitBtn.disabled=true; turnStatus("Pregătesc folderul de predare…");
+ try{
+  const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
+  const setup=await graph(base+"/setUpResourcesFolder",currentToken,{
+   method:"POST",headers:{"Content-Type":"application/json"},body:"{}"
+  });
+  const folderUrl=setup?.resourcesFolderUrl;
+  if(!folderUrl)throw new Error("Graph nu a returnat resourcesFolderUrl.");
+
+  const fileName=cleanFileName();
+  const uploadUrl=`${folderUrl}:/${encodeURIComponent(fileName)}:/content`;
+  turnStatus("Încarc fișierul HTML în folderul lucrării…");
+  const driveItem=await graph(uploadUrl,currentToken,{
+   method:"PUT",headers:{"Content-Type":"text/html; charset=utf-8"},body:document.getElementById("editor").value
+  });
+
+  const m=folderUrl.match(/\/drives\/([^/]+)\/items\/([^/:?]+)/i);
+  if(!m)throw new Error("Nu am putut identifica drive-ul SharePoint.");
+  const driveId=m[1];
+  const fileUrl=`https://graph.microsoft.com/v1.0/drives/${driveId}/items/${driveItem.id}`;
+
+  turnStatus("Atașez fișierul la submission…");
+  attachedResource=await graph(base+"/resources",currentToken,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({resource:{
+    "@odata.type":"#microsoft.graph.educationFileResource",
+    displayName:fileName,
+    fileUrl:fileUrl
+   }})
+  });
+  submitBtn.disabled=false;
+  turnStatus(`Fișier atașat: ${fileName}. Verifică numele, apoi poți apăsa „Predă în Teams”.`,"success");
+ }catch(e){
+  console.error(e); turnStatus("Atașarea a eșuat: "+(e.message||e),"error");
+ }finally{attachBtn.disabled=false;}
+}
+async function submitWork(){
+ if(!selected||!currentSubmission||!attachedResource)return;
+ const ok=confirm(`Predai acum lucrarea „${cleanFileName()}” la tema „${selected.displayName}”?\n\nDupă confirmare, lucrarea va apărea ca predată în Teams.`);
+ if(!ok)return;
+ attachBtn.disabled=true; submitBtn.disabled=true; turnStatus("Predau oficial lucrarea în Teams…");
+ try{
+  const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
+  const result=await graph(base+"/submit",currentToken,{method:"POST"});
+  currentSubmission=result||currentSubmission;
+  submissionInfo.textContent=`Lucrare predată. Stare submission: ${currentSubmission.status||"submitted"}.`;
+  turnStatus("✓ Lucrarea a fost predată în Teams. Profesorul o poate vedea în resursele predate.","success");
+  turnInActions.classList.add("hidden");
+ }catch(e){
+  console.error(e); submitBtn.disabled=false; attachBtn.disabled=false;
+  turnStatus("Predarea a eșuat: "+(e.message||e),"error");
+ }
 }
 async function load(){
  connectBtn.disabled=true;refreshBtn.disabled=true;
@@ -60,18 +164,14 @@ async function load(){
   accountEl.textContent=`Conectat: ${a.account?.name||a.account?.username||"utilizator Microsoft"}`;
   status("Citesc temele utilizatorului…");
   const d=await graph("/education/me/assignments?$select=id,classId,displayName,dueDateTime,status&$orderby=dueDateTime desc&$top=100",currentToken);
-  let items=d.value||[];
-  const teamId=teamsInfo?.teamId;
+  let items=d.value||[]; const teamId=teamsInfo?.teamId;
   if(teamId){
-    const exact=items.filter(x=>(x.classId||"").toLowerCase()===teamId.toLowerCase());
-    if(exact.length || items.some(x=>x.classId)){
-      items=exact;
-      teamHint.textContent=`Filtrare activă după clasa Teams curentă (${teamId}).`;
-    }
+   items=items.filter(x=>(x.classId||"").toLowerCase()===teamId.toLowerCase());
+   teamHint.textContent=`Filtrare activă după clasa Teams curentă (${teamId}).`;
   }
   render(items);status(`Teme afișate pentru clasa curentă: ${items.length}.`);refreshBtn.disabled=false;
  }catch(e){console.error(e);status("Eroare: "+(e.message||e),true);}
  finally{connectBtn.disabled=false;}
 }
-connectBtn.onclick=load;refreshBtn.onclick=load;
+connectBtn.onclick=load;refreshBtn.onclick=load;attachBtn.onclick=attachWork;submitBtn.onclick=submitWork;
 init().catch(e=>status("Inițializarea a eșuat: "+(e.message||e),true));

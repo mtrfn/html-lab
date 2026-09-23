@@ -11,3 +11,9 @@ textarea,iframe{display:block;width:100%;height:56vh;min-height:370px;border:0}t
 .assignment{cursor:pointer;transition:.15s}.assignment:hover{border-color:#8aa8e8;transform:translateY(-1px)}
 .assignment.selected{outline:2px solid #2563eb;background:#eef4ff}.assignment button{margin-top:8px;width:100%}
 .selection{margin-top:12px;padding:12px;border:1px solid #b8c9ec;border-radius:9px;background:#f8faff}.selection h3{margin:0 0 5px}.hidden{display:none}
+
+.turnin-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.submit-btn{background:#16794b;color:#fff;border-color:#16794b;font-weight:700}
+.submit-btn:disabled{background:#d8dee8;color:#657086;border-color:#cbd4e2}
+.danger-note{color:#b42318;font-weight:600}
+.success-note{color:#137a4a;font-weight:600}
