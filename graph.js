@@ -13,6 +13,11 @@ const accountEl=document.getElementById("account"), statusEl=document.getElement
  submitBtn=document.getElementById("submitWork"), turnInStatus=document.getElementById("turnInStatus");
 
 let pca=null, teamsInfo=null, currentToken=null, currentAssignments=[], selected=null, currentSubmission=null, attachedResource=null;
+const diagDetails=document.getElementById("diagDetails");
+function diag(id,state,text,detail=""){const el=document.getElementById(id);if(!el)return;const mark=state==="ok"?"✓":state==="fail"?"✗":state==="run"?"→":"○";el.textContent=`${mark} ${text}`;el.className=state==="ok"?"diag-ok":state==="fail"?"diag-fail":state==="run"?"diag-run":"";if(detail)diagDetails.textContent+=(diagDetails.textContent?"\n\n":"")+detail;}
+function resetDiag(){[["diagAuth","Token Microsoft Graph"],["diagSubmission","Submission elev"],["diagFolder","setUpResourcesFolder"],["diagUpload","Upload fișier SharePoint"],["diagResource","Atașare resource la submission"],["diagReady","Pregătit pentru Predare"]].forEach(([id,t])=>diag(id,"",t));diagDetails.textContent="";}
+function jwtScopes(token){try{const s=token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");const p=JSON.parse(atob(s));return p.scp||"";}catch{return "(nu pot citi scopes)";}}
+
 
 function status(t,err=false){statusEl.textContent=t;statusEl.style.color=err?"#b42318":"#526078";}
 function turnStatus(t,kind=""){turnInStatus.textContent=t;turnInStatus.className=kind==="error"?"danger-note":kind==="success"?"success-note":"muted";}
@@ -103,42 +108,29 @@ async function choose(i,el){
 }
 async function attachWork(){
  if(!selected||!currentSubmission)return;
- attachBtn.disabled=true; submitBtn.disabled=true; turnStatus("Pregătesc folderul de predare…");
+ resetDiag();diag("diagAuth","ok","Token Microsoft Graph",`Scopes token: ${jwtScopes(currentToken)}`);diag("diagSubmission","ok",`Submission elev (${currentSubmission.status})`,`Submission ID: ${currentSubmission.id}`);
+ attachBtn.disabled=true;submitBtn.disabled=true;turnStatus("Rulez diagnosticul de atașare…");
+ const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
  try{
-  const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
-  const setup=await graph(base+"/setUpResourcesFolder",currentToken,{
-   method:"POST",headers:{"Content-Type":"application/json"},body:"{}"
-  });
-  const folderUrl=setup?.resourcesFolderUrl;
-  if(!folderUrl)throw new Error("Graph nu a returnat resourcesFolderUrl.");
-
-  const fileName=cleanFileName();
-  const uploadUrl=`${folderUrl}:/${encodeURIComponent(fileName)}:/content`;
-  turnStatus("Încarc fișierul HTML în folderul lucrării…");
-  const driveItem=await graph(uploadUrl,currentToken,{
-   method:"PUT",headers:{"Content-Type":"text/html; charset=utf-8"},body:document.getElementById("editor").value
-  });
-
-  const m=folderUrl.match(/\/drives\/([^/]+)\/items\/([^/:?]+)/i);
-  if(!m)throw new Error("Nu am putut identifica drive-ul SharePoint.");
-  const driveId=m[1];
-  const fileUrl=`https://graph.microsoft.com/v1.0/drives/${driveId}/items/${driveItem.id}`;
-
-  turnStatus("Atașez fișierul la submission…");
-  attachedResource=await graph(base+"/resources",currentToken,{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({resource:{
-    "@odata.type":"#microsoft.graph.educationFileResource",
-    displayName:fileName,
-    fileUrl:fileUrl
-   }})
-  });
-  submitBtn.disabled=false;
-  turnStatus(`Fișier atașat: ${fileName}. Verifică numele, apoi poți apăsa „Predă în Teams”.`,"success");
- }catch(e){
-  console.error(e); turnStatus("Atașarea a eșuat: "+(e.message||e),"error");
- }finally{attachBtn.disabled=false;}
+  diag("diagFolder","run","setUpResourcesFolder — în curs");
+  let setup;
+  try{setup=await graph(base+"/setUpResourcesFolder",currentToken,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});diag("diagFolder","ok","setUpResourcesFolder — HTTP OK",`Răspuns:\n${JSON.stringify(setup,null,2)}`);}
+  catch(e){diag("diagFolder","fail","setUpResourcesFolder — EȘUAT",String(e.message||e));throw new Error("PAS 3 setUpResourcesFolder: "+(e.message||e));}
+  const refreshed=await graph(base+"?$select=id,status,resourcesFolderUrl",currentToken);currentSubmission={...currentSubmission,...refreshed};
+  const folderUrl=currentSubmission.resourcesFolderUrl||setup?.resourcesFolderUrl;if(!folderUrl)throw new Error("PAS 3: resourcesFolderUrl lipsește.");
+  diag("diagFolder","ok","setUpResourcesFolder — folder disponibil",`resourcesFolderUrl: ${folderUrl}`);
+  const fileName=cleanFileName();diag("diagUpload","run","Upload fișier SharePoint — în curs");
+  let driveItem;
+  try{driveItem=await graph(`${folderUrl}:/${encodeURIComponent(fileName)}:/content`,currentToken,{method:"PUT",headers:{"Content-Type":"text/html; charset=utf-8"},body:document.getElementById("editor").value});diag("diagUpload","ok","Upload fișier SharePoint — HTTP OK",`DriveItem ID: ${driveItem?.id||"n/a"}\nWeb URL: ${driveItem?.webUrl||"n/a"}`);}
+  catch(e){diag("diagUpload","fail","Upload fișier SharePoint — EȘUAT",String(e.message||e));throw new Error("PAS 4 Upload SharePoint: "+(e.message||e));}
+  const m=folderUrl.match(/\/drives\/([^/]+)\/items\/([^/:?]+)/i);if(!m)throw new Error("PAS 4: nu pot extrage driveId din resourcesFolderUrl.");
+  const fileUrl=`https://graph.microsoft.com/v1.0/drives/${m[1]}/items/${driveItem.id}`;
+  diag("diagResource","run","Atașare resource la submission — în curs");
+  try{attachedResource=await graph(base+"/resources",currentToken,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:{"@odata.type":"#microsoft.graph.educationFileResource",displayName:fileName,fileUrl}})});diag("diagResource","ok","Atașare resource — HTTP OK",`Resource:\n${JSON.stringify(attachedResource,null,2)}`);}
+  catch(e){diag("diagResource","fail","Atașare resource — EȘUAT",String(e.message||e));throw new Error("PAS 5 Atașare resource: "+(e.message||e));}
+  submitBtn.disabled=false;diag("diagReady","ok","Pregătit pentru Predare");turnStatus(`Fișier atașat: ${fileName}. Diagnosticul a trecut toate etapele.`,"success");
+ }catch(e){console.error(e);turnStatus("Atașarea a eșuat: "+(e.message||e),"error");}
+ finally{attachBtn.disabled=false;}
 }
 async function submitWork(){
  if(!selected||!currentSubmission||!attachedResource)return;

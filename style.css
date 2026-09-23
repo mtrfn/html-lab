@@ -17,3 +17,4 @@ textarea,iframe{display:block;width:100%;height:56vh;min-height:370px;border:0}t
 .submit-btn:disabled{background:#d8dee8;color:#657086;border-color:#cbd4e2}
 .danger-note{color:#b42318;font-weight:600}
 .success-note{color:#137a4a;font-weight:600}
+.diagnostics{margin-top:12px;padding:11px;border:1px dashed #aebbd0;border-radius:9px;background:#fcfdff}.diagnostics h4{margin:0 0 7px}.diagnostics ol{margin:0;padding-left:25px;line-height:1.75}.diag-ok{color:#137a4a;font-weight:650}.diag-fail{color:#b42318;font-weight:650}.diag-run{color:#1f5fbf;font-weight:650}#diagDetails{white-space:pre-wrap;word-break:break-word;max-height:230px;overflow:auto;background:#f4f6f9;padding:8px;border-radius:6px;font-size:.78rem}
