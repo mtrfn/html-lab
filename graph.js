@@ -13,12 +13,6 @@ const accountEl=document.getElementById("account"), statusEl=document.getElement
  submitBtn=document.getElementById("submitWork"), turnInStatus=document.getElementById("turnInStatus");
 
 let pca=null, teamsInfo=null, currentToken=null, currentAssignments=[], selected=null, currentSubmission=null, attachedResource=null;
-const diagDetails=document.getElementById("diagDetails");
-function diag(id,state,text,detail=""){const el=document.getElementById(id);if(!el)return;const mark=state==="ok"?"✓":state==="fail"?"✗":state==="run"?"→":"○";el.textContent=`${mark} ${text}`;el.className=state==="ok"?"diag-ok":state==="fail"?"diag-fail":state==="run"?"diag-run":"";if(detail)diagDetails.textContent+=(diagDetails.textContent?"\n\n":"")+detail;}
-function resetDiag(){[["diagAuth","Token Microsoft Graph"],["diagSubmission","Submission elev"],["diagFolder","setUpResourcesFolder"],["diagGetFolder","GET folder SharePoint"],["diagChildren","GET children"],["diagUpload","PUT fișier SharePoint"],["diagResource","Atașare resource la submission"],["diagReady","Pregătit pentru Predare"]].forEach(([id,t])=>diag(id,"",t));diagDetails.textContent="";}
-function jwtScopes(token){try{const s=token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");const p=JSON.parse(atob(s));return p.scp||"";}catch{return "(nu pot citi scopes)";}}
-
-
 function status(t,err=false){statusEl.textContent=t;statusEl.style.color=err?"#b42318":"#526078";}
 function turnStatus(t,kind=""){turnInStatus.textContent=t;turnInStatus.className=kind==="error"?"danger-note":kind==="success"?"success-note":"muted";}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -108,65 +102,55 @@ async function choose(i,el){
 }
 async function attachWork(){
  if(!selected||!currentSubmission)return;
- resetDiag();diag("diagAuth","ok","Token Microsoft Graph",`Scopes token: ${jwtScopes(currentToken)}`);diag("diagSubmission","ok",`Submission elev (${currentSubmission.status})`,`Submission ID: ${currentSubmission.id}`);
- attachBtn.disabled=true;submitBtn.disabled=true;turnStatus("Rulez diagnosticul de atașare…");
+ attachBtn.disabled=true;submitBtn.disabled=true;turnStatus("Atașez lucrarea și sursa HTML în Teams…");
  const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
  try{
-  diag("diagFolder","run","setUpResourcesFolder — în curs");
-  let setup;
-  try{setup=await graph(base+"/setUpResourcesFolder",currentToken,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});diag("diagFolder","ok","setUpResourcesFolder — HTTP OK",`Răspuns:\n${JSON.stringify(setup,null,2)}`);}
-  catch(e){diag("diagFolder","fail","setUpResourcesFolder — EȘUAT",String(e.message||e));throw new Error("PAS 3 setUpResourcesFolder: "+(e.message||e));}
-  const refreshed=await graph(base+"?$select=id,status,resourcesFolderUrl",currentToken);currentSubmission={...currentSubmission,...refreshed};
-  const folderUrl=currentSubmission.resourcesFolderUrl||setup?.resourcesFolderUrl;if(!folderUrl)throw new Error("PAS 3: resourcesFolderUrl lipsește.");
-  diag("diagFolder","ok","setUpResourcesFolder — folder disponibil",`resourcesFolderUrl: ${folderUrl}`);
+  const setup=await graph(base+"/setUpResourcesFolder",currentToken,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+  const refreshed=await graph(base+"?$select=id,status,resourcesFolderUrl",currentToken);
+  currentSubmission={...currentSubmission,...refreshed};
+  const folderUrl=currentSubmission.resourcesFolderUrl||setup?.resourcesFolderUrl;
+  if(!folderUrl)throw new Error("resourcesFolderUrl lipsește.");
 
-  // V3.2.2: separate SharePoint read diagnostics before attempting the PUT.
-  diag("diagGetFolder","run","GET folder SharePoint — în curs");
-  try{
-   const folderItem=await graph(folderUrl,currentToken);
-   diag("diagGetFolder","ok","GET folder SharePoint — HTTP OK",`Folder ID: ${folderItem?.id||"n/a"}\nNume: ${folderItem?.name||"n/a"}\nWeb URL: ${folderItem?.webUrl||"n/a"}`);
-  }catch(e){
-   diag("diagGetFolder","fail","GET folder SharePoint — EȘUAT",String(e.message||e));
-   throw new Error("PAS 4 GET folder SharePoint: "+(e.message||e));
+  const fileName=cleanFileName();
+  const sourceName=fileName.replace(/\.html?$/i,"-sursa.txt");
+  const source=document.getElementById("editor").value;
+  const m=folderUrl.match(/\/drives\/([^/]+)\/items\/([^/:?]+)/i);
+  if(!m)throw new Error("Nu pot extrage driveId din resourcesFolderUrl.");
+
+  async function uploadAndAttach(name,content,type){
+   const driveItem=await graph(`${folderUrl}:/${encodeURIComponent(name)}:/content`,currentToken,{method:"PUT",headers:{"Content-Type":type},body:content});
+   const fileUrl=`https://graph.microsoft.com/v1.0/drives/${m[1]}/items/${driveItem.id}`;
+   return graph(base+"/resources",currentToken,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:{"@odata.type":"#microsoft.graph.educationFileResource",displayName:name,fileUrl}})});
   }
 
-  diag("diagChildren","run","GET children — în curs");
-  try{
-   const children=await graph(folderUrl+"/children?$select=id,name,webUrl,size",currentToken);
-   const vals=children?.value||[];
-   diag("diagChildren","ok",`GET children — HTTP OK (${vals.length} elemente)`, vals.length?`Conținut:\n${vals.map(x=>`- ${x.name} [${x.id}]`).join("\n")}`:"Folderul este gol.");
-  }catch(e){
-   diag("diagChildren","fail","GET children — EȘUAT",String(e.message||e));
-   throw new Error("PAS 5 GET children: "+(e.message||e));
-  }
-
-  const fileName=cleanFileName();diag("diagUpload","run","PUT fișier SharePoint — în curs");
-  let driveItem;
-  try{driveItem=await graph(`${folderUrl}:/${encodeURIComponent(fileName)}:/content`,currentToken,{method:"PUT",headers:{"Content-Type":"text/html; charset=utf-8"},body:document.getElementById("editor").value});diag("diagUpload","ok","PUT fișier SharePoint — HTTP OK",`DriveItem ID: ${driveItem?.id||"n/a"}\nWeb URL: ${driveItem?.webUrl||"n/a"}`);}
-  catch(e){diag("diagUpload","fail","PUT fișier SharePoint — EȘUAT",String(e.message||e));throw new Error("PAS 6 PUT fișier SharePoint: "+(e.message||e));}
-  const m=folderUrl.match(/\/drives\/([^/]+)\/items\/([^/:?]+)/i);if(!m)throw new Error("PAS 6: nu pot extrage driveId din resourcesFolderUrl.");
-  const fileUrl=`https://graph.microsoft.com/v1.0/drives/${m[1]}/items/${driveItem.id}`;
-  diag("diagResource","run","Atașare resource la submission — în curs");
-  try{attachedResource=await graph(base+"/resources",currentToken,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:{"@odata.type":"#microsoft.graph.educationFileResource",displayName:fileName,fileUrl}})});diag("diagResource","ok","Atașare resource — HTTP OK",`Resource:\n${JSON.stringify(attachedResource,null,2)}`);}
-  catch(e){diag("diagResource","fail","Atașare resource — EȘUAT",String(e.message||e));throw new Error("PAS 7 Atașare resource: "+(e.message||e));}
-  submitBtn.disabled=false;diag("diagReady","ok","Pregătit pentru Predare");turnStatus(`Fișier atașat: ${fileName}. Diagnosticul a trecut toate etapele.`,"success");
- }catch(e){console.error(e);turnStatus("Atașarea a eșuat: "+(e.message||e),"error");}
- finally{attachBtn.disabled=false;}
+  await uploadAndAttach(fileName,source,"text/html; charset=utf-8");
+  await uploadAndAttach(sourceName,source,"text/plain; charset=utf-8");
+  attachedResource=true;
+  submitBtn.disabled=false;
+  turnStatus(`✓ Au fost atașate ${fileName} și ${sourceName}. Poți preda lucrarea.`,"success");
+ }catch(e){
+  console.error(e);turnStatus("Atașarea a eșuat: "+(e.message||e),"error");
+ }finally{attachBtn.disabled=false;}
 }
 async function submitWork(){
  if(!selected||!currentSubmission||!attachedResource)return;
  const ok=confirm(`Predai acum lucrarea „${cleanFileName()}” la tema „${selected.displayName}”?\n\nDupă confirmare, lucrarea va apărea ca predată în Teams.`);
  if(!ok)return;
- attachBtn.disabled=true; submitBtn.disabled=true; turnStatus("Predau oficial lucrarea în Teams…");
+ attachBtn.disabled=true;submitBtn.disabled=true;turnStatus("Predau oficial lucrarea în Teams…");
  try{
   const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
-  const result=await graph(base+"/submit",currentToken,{method:"POST"});
-  currentSubmission=result||currentSubmission;
-  submissionInfo.textContent=`Lucrare predată. Stare submission: ${currentSubmission.status||"submitted"}.`;
-  turnStatus("✓ Lucrarea a fost predată în Teams. Profesorul o poate vedea în resursele predate.","success");
-  turnInActions.classList.add("hidden");
+  await graph(base+"/submit",currentToken,{method:"POST"});
+  const verified=await graph(base+"?$select=id,status,submittedDateTime",currentToken);
+  currentSubmission={...currentSubmission,...verified};
+  if(currentSubmission.status!=="submitted")throw new Error(`Teams a răspuns la predare, dar starea verificată este „${currentSubmission.status||"necunoscută"}”.`);
+  submissionInfo.textContent=`✓ Lucrare predată în Teams${currentSubmission.submittedDateTime?` la ${fmt(currentSubmission.submittedDateTime)}`:""}.`;
+  submissionInfo.className="success-note";
+  turnStatus("✓ Lucrarea a fost predată cu succes. Profesorul o poate vedea și evalua în Teams.","success");
+  submitBtn.textContent="✓ Predată";
+  submitBtn.disabled=true;
+  attachBtn.disabled=true;
  }catch(e){
-  console.error(e); submitBtn.disabled=false; attachBtn.disabled=false;
+  console.error(e);submitBtn.disabled=false;attachBtn.disabled=false;
   turnStatus("Predarea a eșuat: "+(e.message||e),"error");
  }
 }
