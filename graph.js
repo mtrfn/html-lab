@@ -33,6 +33,10 @@ async function graph(url,token,options={}){
 }
 function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 function isSubmitted(s){return s?.status==="submitted" || !!s?.submittedDateTime;}
+function showGraphDiagnostic(s,label="Graph") {
+ const stamp=s?.submittedDateTime?` | submittedDateTime: ${s.submittedDateTime}`:"";
+ turnStatus(`${label} status: ${s?.status||"necunoscut"}${stamp}`, isSubmitted(s)?"success":"");
+}
 function showSubmittedState(){
  submissionInfo.textContent=`✓ Lucrare predată în Teams${currentSubmission?.submittedDateTime?` la ${fmt(currentSubmission.submittedDateTime)}`:""}.`;
  submissionInfo.className="success-note";
@@ -103,8 +107,13 @@ async function choose(i,el){
    submissionInfo.textContent="Această temă nu permite elevilor să adauge fișiere proprii. Activează această opțiune în temă înainte de test.";
    return;
   }
-  const d=await graph(`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions?$select=id,status,submittedDateTime,reassignedDateTime,resourcesFolderUrl`,currentToken);
-  const subs=d.value||[];
+  // Pentru contul elevului preferăm submission-ul expandat din /education/me/assignments.
+  // Astfel evităm ambiguitatea listării tuturor submissions ale temei.
+  let subs=Array.isArray(selected.submissions)?selected.submissions:[];
+  if(!subs.length){
+   const d=await graph(`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions?$select=id,status,submittedDateTime,reassignedDateTime,returnedDateTime,resourcesFolderUrl`,currentToken);
+   subs=d.value||[];
+  }
   if(subs.length!==1){
    submissionInfo.textContent=subs.length===0
     ?"Nu există submission asociat acestui cont. Pentru predare, deschide aplicația cu un cont de elev."
@@ -174,10 +183,14 @@ async function submitWork(){
  attachBtn.disabled=true;submitBtn.disabled=true;turnStatus("Predau oficial lucrarea în Teams…");
  try{
   const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
-  await graph(base+"/submit",currentToken,{method:"POST"});
-  const verified=await refreshSubmissionAfterSubmit(base);
-  currentSubmission={...currentSubmission,...verified};
-  if(!isSubmitted(currentSubmission))throw new Error(`Teams a acceptat comanda de predare, dar după reverificare starea este „${currentSubmission.status||"necunoscută"}”. Apasă Actualizează temele pentru a verifica din nou.`);
+  const submitted=await graph(base+"/submit",currentToken,{method:"POST"});
+  if(submitted && typeof submitted==="object") currentSubmission={...currentSubmission,...submitted};
+  showGraphDiagnostic(currentSubmission,"Răspuns submit");
+  if(!isSubmitted(currentSubmission)){
+   const verified=await refreshSubmissionAfterSubmit(base);
+   if(verified) currentSubmission={...currentSubmission,...verified};
+  }
+  if(!isSubmitted(currentSubmission))throw new Error(`Teams a acceptat comanda de predare, dar Graph raportează starea „${currentSubmission.status||"necunoscută"}”.`);
   showSubmittedState();
  }catch(e){
   console.error(e);submitBtn.disabled=false;attachBtn.disabled=false;
@@ -190,7 +203,7 @@ async function load(){
   status("Obțin tokenul Microsoft Graph…");const a=await token();currentToken=a.accessToken;
   accountEl.textContent=`Conectat: ${a.account?.name||a.account?.username||"utilizator Microsoft"}`;
   status("Citesc temele utilizatorului…");
-  const d=await graph("/education/me/assignments?$select=id,classId,displayName,dueDateTime,status&$orderby=dueDateTime desc&$top=100",currentToken);
+  const d=await graph("/education/me/assignments?$select=id,classId,displayName,dueDateTime,status&$expand=submissions($select=id,status,submittedDateTime,reassignedDateTime,returnedDateTime,resourcesFolderUrl)&$orderby=dueDateTime desc&$top=100",currentToken);
   let items=d.value||[]; const teamId=teamsInfo?.teamId;
   if(teamId){
    items=items.filter(x=>(x.classId||"").toLowerCase()===teamId.toLowerCase());
