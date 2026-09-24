@@ -2,7 +2,7 @@ import { createNestablePublicClientApplication, InteractionRequiredAuthError } f
 
 const CLIENT_ID="186ef62f-0e5b-47c2-ab13-2a33600f55cd";
 const TENANT_ID="8850faa5-c5a4-4364-bf6e-7ee02b1f4789";
-const SCOPES=["User.Read","EduAssignments.ReadWrite","EduRoster.ReadBasic","Files.ReadWrite"];
+const SCOPES=["User.Read","EduAssignments.ReadWrite","EduRoster.ReadBasic","Files.ReadWrite.All"];
 
 const accountEl=document.getElementById("account"), statusEl=document.getElementById("graphStatus"),
  assignmentsEl=document.getElementById("assignments"), connectBtn=document.getElementById("connect"),
