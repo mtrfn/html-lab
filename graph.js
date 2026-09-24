@@ -15,7 +15,7 @@ const accountEl=document.getElementById("account"), statusEl=document.getElement
 let pca=null, teamsInfo=null, currentToken=null, currentAssignments=[], selected=null, currentSubmission=null, attachedResource=null;
 const diagDetails=document.getElementById("diagDetails");
 function diag(id,state,text,detail=""){const el=document.getElementById(id);if(!el)return;const mark=state==="ok"?"✓":state==="fail"?"✗":state==="run"?"→":"○";el.textContent=`${mark} ${text}`;el.className=state==="ok"?"diag-ok":state==="fail"?"diag-fail":state==="run"?"diag-run":"";if(detail)diagDetails.textContent+=(diagDetails.textContent?"\n\n":"")+detail;}
-function resetDiag(){[["diagAuth","Token Microsoft Graph"],["diagSubmission","Submission elev"],["diagFolder","setUpResourcesFolder"],["diagUpload","Upload fișier SharePoint"],["diagResource","Atașare resource la submission"],["diagReady","Pregătit pentru Predare"]].forEach(([id,t])=>diag(id,"",t));diagDetails.textContent="";}
+function resetDiag(){[["diagAuth","Token Microsoft Graph"],["diagSubmission","Submission elev"],["diagFolder","setUpResourcesFolder"],["diagGetFolder","GET folder SharePoint"],["diagChildren","GET children"],["diagUpload","PUT fișier SharePoint"],["diagResource","Atașare resource la submission"],["diagReady","Pregătit pentru Predare"]].forEach(([id,t])=>diag(id,"",t));diagDetails.textContent="";}
 function jwtScopes(token){try{const s=token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");const p=JSON.parse(atob(s));return p.scp||"";}catch{return "(nu pot citi scopes)";}}
 
 
@@ -119,15 +119,36 @@ async function attachWork(){
   const refreshed=await graph(base+"?$select=id,status,resourcesFolderUrl",currentToken);currentSubmission={...currentSubmission,...refreshed};
   const folderUrl=currentSubmission.resourcesFolderUrl||setup?.resourcesFolderUrl;if(!folderUrl)throw new Error("PAS 3: resourcesFolderUrl lipsește.");
   diag("diagFolder","ok","setUpResourcesFolder — folder disponibil",`resourcesFolderUrl: ${folderUrl}`);
-  const fileName=cleanFileName();diag("diagUpload","run","Upload fișier SharePoint — în curs");
+
+  // V3.2.2: separate SharePoint read diagnostics before attempting the PUT.
+  diag("diagGetFolder","run","GET folder SharePoint — în curs");
+  try{
+   const folderItem=await graph(folderUrl,currentToken);
+   diag("diagGetFolder","ok","GET folder SharePoint — HTTP OK",`Folder ID: ${folderItem?.id||"n/a"}\nNume: ${folderItem?.name||"n/a"}\nWeb URL: ${folderItem?.webUrl||"n/a"}`);
+  }catch(e){
+   diag("diagGetFolder","fail","GET folder SharePoint — EȘUAT",String(e.message||e));
+   throw new Error("PAS 4 GET folder SharePoint: "+(e.message||e));
+  }
+
+  diag("diagChildren","run","GET children — în curs");
+  try{
+   const children=await graph(folderUrl+"/children?$select=id,name,webUrl,size",currentToken);
+   const vals=children?.value||[];
+   diag("diagChildren","ok",`GET children — HTTP OK (${vals.length} elemente)`, vals.length?`Conținut:\n${vals.map(x=>`- ${x.name} [${x.id}]`).join("\n")}`:"Folderul este gol.");
+  }catch(e){
+   diag("diagChildren","fail","GET children — EȘUAT",String(e.message||e));
+   throw new Error("PAS 5 GET children: "+(e.message||e));
+  }
+
+  const fileName=cleanFileName();diag("diagUpload","run","PUT fișier SharePoint — în curs");
   let driveItem;
-  try{driveItem=await graph(`${folderUrl}:/${encodeURIComponent(fileName)}:/content`,currentToken,{method:"PUT",headers:{"Content-Type":"text/html; charset=utf-8"},body:document.getElementById("editor").value});diag("diagUpload","ok","Upload fișier SharePoint — HTTP OK",`DriveItem ID: ${driveItem?.id||"n/a"}\nWeb URL: ${driveItem?.webUrl||"n/a"}`);}
-  catch(e){diag("diagUpload","fail","Upload fișier SharePoint — EȘUAT",String(e.message||e));throw new Error("PAS 4 Upload SharePoint: "+(e.message||e));}
-  const m=folderUrl.match(/\/drives\/([^/]+)\/items\/([^/:?]+)/i);if(!m)throw new Error("PAS 4: nu pot extrage driveId din resourcesFolderUrl.");
+  try{driveItem=await graph(`${folderUrl}:/${encodeURIComponent(fileName)}:/content`,currentToken,{method:"PUT",headers:{"Content-Type":"text/html; charset=utf-8"},body:document.getElementById("editor").value});diag("diagUpload","ok","PUT fișier SharePoint — HTTP OK",`DriveItem ID: ${driveItem?.id||"n/a"}\nWeb URL: ${driveItem?.webUrl||"n/a"}`);}
+  catch(e){diag("diagUpload","fail","PUT fișier SharePoint — EȘUAT",String(e.message||e));throw new Error("PAS 6 PUT fișier SharePoint: "+(e.message||e));}
+  const m=folderUrl.match(/\/drives\/([^/]+)\/items\/([^/:?]+)/i);if(!m)throw new Error("PAS 6: nu pot extrage driveId din resourcesFolderUrl.");
   const fileUrl=`https://graph.microsoft.com/v1.0/drives/${m[1]}/items/${driveItem.id}`;
   diag("diagResource","run","Atașare resource la submission — în curs");
   try{attachedResource=await graph(base+"/resources",currentToken,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:{"@odata.type":"#microsoft.graph.educationFileResource",displayName:fileName,fileUrl}})});diag("diagResource","ok","Atașare resource — HTTP OK",`Resource:\n${JSON.stringify(attachedResource,null,2)}`);}
-  catch(e){diag("diagResource","fail","Atașare resource — EȘUAT",String(e.message||e));throw new Error("PAS 5 Atașare resource: "+(e.message||e));}
+  catch(e){diag("diagResource","fail","Atașare resource — EȘUAT",String(e.message||e));throw new Error("PAS 7 Atașare resource: "+(e.message||e));}
   submitBtn.disabled=false;diag("diagReady","ok","Pregătit pentru Predare");turnStatus(`Fișier atașat: ${fileName}. Diagnosticul a trecut toate etapele.`,"success");
  }catch(e){console.error(e);turnStatus("Atașarea a eșuat: "+(e.message||e),"error");}
  finally{attachBtn.disabled=false;}
