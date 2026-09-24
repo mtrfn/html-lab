@@ -180,26 +180,34 @@ async function submitWork(){
  if(!selected||!currentSubmission||!attachedResource)return;
  const ok=confirm(`Predai acum lucrarea „${cleanFileName()}” la tema „${selected.displayName}”?\n\nDupă confirmare, lucrarea va apărea ca predată în Teams.`);
  if(!ok)return;
+ const diagBox=document.getElementById("submitDiagnostic"), diagText=document.getElementById("submitDiagnosticText");
+ const lines=[]; const log=(x)=>{lines.push(x); if(diagBox)diagBox.style.display="block"; if(diagText)diagText.textContent=lines.join("\n");};
+ log("1. ✓ Click detectat");
  attachBtn.disabled=true;submitBtn.disabled=true;turnStatus("Predau oficial lucrarea în Teams…");
  try{
   const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
-  const submitted=await graph(base+"/submit",currentToken,{method:"POST"});
-  // Un răspuns HTTP 2xx la acțiunea /submit înseamnă că Teams a acceptat predarea.
-  // Unele tenant-uri păstrează temporar status=working la citirea imediată a submission-ului,
-  // deși lucrarea este deja vizibilă profesorului. Actualizăm UI imediat, apoi verificăm în fundal.
+  log("2. → POST /submit trimis");
+  const r=await fetch("https://graph.microsoft.com/v1.0"+base+"/submit",{method:"POST",headers:{Authorization:`Bearer ${currentToken}`}});
+  const raw=await r.text();
+  log(`3. ${r.ok?"✓":"✗"} HTTP ${r.status} ${r.statusText||""}`);
+  log(`4. Răspuns brut: ${raw||"(corp gol)"}`);
+  if(!r.ok) throw new Error(`Graph ${r.status}: ${raw}`);
+  let submitted=null;
+  if(raw){try{submitted=JSON.parse(raw);}catch{}}
+  log(`5. Graph status returnat: ${submitted?.status||"(nu este prezent în răspuns)"}`);
   if(submitted && typeof submitted==="object") currentSubmission={...currentSubmission,...submitted};
   currentSubmission={...currentSubmission,status:"submitted",submittedDateTime:currentSubmission.submittedDateTime||new Date().toISOString()};
   showSubmittedState();
-  // Verificare best-effort: nu anulăm confirmarea vizuală dacă Graph este eventual-consistent.
+  log(`6. ✓ Actualizare UI executată | buton="${submitBtn.textContent}" | disabled=${submitBtn.disabled}`);
+  // Nu suprascriem mesajul de succes cu diagnosticul; panoul separat rămâne vizibil.
   refreshSubmissionAfterSubmit(base).then(verified=>{
-   if(verified && isSubmitted(verified)){
-    currentSubmission={...currentSubmission,...verified};
-    showSubmittedState();
-   }
-  }).catch(e=>console.warn("Verificarea ulterioară a stării a eșuat:",e));
+   log(`7. Verificare GET: status=${verified?.status||"necunoscut"}, submittedDateTime=${verified?.submittedDateTime||"—"}`);
+   if(verified && isSubmitted(verified)){currentSubmission={...currentSubmission,...verified};showSubmittedState();}
+  }).catch(e=>log("7. ✗ GET verificare: "+(e.message||e)));
  }catch(e){
   console.error(e);submitBtn.disabled=false;attachBtn.disabled=false;
   turnStatus("Predarea a eșuat: "+(e.message||e),"error");
+  log("EROARE: "+(e.message||e));
  }
 }
 async function load(){
