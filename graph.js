@@ -120,7 +120,18 @@ async function attachWork(){
   async function uploadAndAttach(name,content,type){
    const driveItem=await graph(`${folderUrl}:/${encodeURIComponent(name)}:/content`,currentToken,{method:"PUT",headers:{"Content-Type":type},body:content});
    const fileUrl=`https://graph.microsoft.com/v1.0/drives/${m[1]}/items/${driveItem.id}`;
-   return graph(base+"/resources",currentToken,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:{"@odata.type":"#microsoft.graph.educationFileResource",displayName:name,fileUrl}})});
+   try{
+    return await graph(base+"/resources",currentToken,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:{"@odata.type":"#microsoft.graph.educationFileResource",displayName:name,fileUrl}})});
+   }catch(e){
+    // Dacă fișierul era deja atașat la acest submission, PUT-ul de mai sus
+    // i-a actualizat conținutul. Graph răspunde 412 când încercăm să creăm
+    // încă o resursă pentru același fișier; tratăm cazul ca succes.
+    const msg=String(e?.message||e);
+    if(msg.includes("Graph 412") && (msg.includes("already exists using this file") || msg.includes('\"code\":\"20248\"'))){
+     return {alreadyAttached:true,displayName:name,fileUrl};
+    }
+    throw e;
+   }
   }
 
   await uploadAndAttach(fileName,source,"text/html; charset=utf-8");
