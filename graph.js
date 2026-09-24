@@ -31,6 +31,26 @@ async function graph(url,token,options={}){
  const ct=r.headers.get("content-type")||"";
  return ct.includes("application/json")?r.json():r.text();
 }
+function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+function isSubmitted(s){return s?.status==="submitted" || !!s?.submittedDateTime;}
+function showSubmittedState(){
+ submissionInfo.textContent=`✓ Lucrare predată în Teams${currentSubmission?.submittedDateTime?` la ${fmt(currentSubmission.submittedDateTime)}`:""}.`;
+ submissionInfo.className="success-note";
+ turnStatus("✓ Lucrarea a fost predată cu succes. Profesorul o poate vedea și evalua în Teams.","success");
+ submitBtn.textContent="✓ Predată";
+ submitBtn.disabled=true;
+ attachBtn.disabled=true;
+ turnInActions.classList.remove("hidden");
+}
+async function refreshSubmissionAfterSubmit(base){
+ let last=null;
+ for(let i=0;i<6;i++){
+  if(i) await sleep(1000);
+  last=await graph(base+"?$select=id,status,submittedDateTime,reassignedDateTime,resourcesFolderUrl",currentToken);
+  if(isSubmitted(last)) return last;
+ }
+ return last;
+}
 async function init(){
  teamsInfo=await (window.htmlLabTeamsReady||Promise.resolve(null));
  const c=teamsInfo?.context;
@@ -92,6 +112,10 @@ async function choose(i,el){
    return;
   }
   currentSubmission=subs[0];
+  if(isSubmitted(currentSubmission)){
+   showSubmittedState();
+   return;
+  }
   if(!["working","returned","reassigned"].includes(currentSubmission.status)){
    submissionInfo.textContent=`Submission detectat, dar starea este „${currentSubmission.status}”. Pentru atașare trebuie să fie în lucru.`;
    return;
@@ -151,15 +175,10 @@ async function submitWork(){
  try{
   const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
   await graph(base+"/submit",currentToken,{method:"POST"});
-  const verified=await graph(base+"?$select=id,status,submittedDateTime",currentToken);
+  const verified=await refreshSubmissionAfterSubmit(base);
   currentSubmission={...currentSubmission,...verified};
-  if(currentSubmission.status!=="submitted")throw new Error(`Teams a răspuns la predare, dar starea verificată este „${currentSubmission.status||"necunoscută"}”.`);
-  submissionInfo.textContent=`✓ Lucrare predată în Teams${currentSubmission.submittedDateTime?` la ${fmt(currentSubmission.submittedDateTime)}`:""}.`;
-  submissionInfo.className="success-note";
-  turnStatus("✓ Lucrarea a fost predată cu succes. Profesorul o poate vedea și evalua în Teams.","success");
-  submitBtn.textContent="✓ Predată";
-  submitBtn.disabled=true;
-  attachBtn.disabled=true;
+  if(!isSubmitted(currentSubmission))throw new Error(`Teams a acceptat comanda de predare, dar după reverificare starea este „${currentSubmission.status||"necunoscută"}”. Apasă Actualizează temele pentru a verifica din nou.`);
+  showSubmittedState();
  }catch(e){
   console.error(e);submitBtn.disabled=false;attachBtn.disabled=false;
   turnStatus("Predarea a eșuat: "+(e.message||e),"error");
