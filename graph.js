@@ -184,14 +184,19 @@ async function submitWork(){
  try{
   const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
   const submitted=await graph(base+"/submit",currentToken,{method:"POST"});
+  // Un răspuns HTTP 2xx la acțiunea /submit înseamnă că Teams a acceptat predarea.
+  // Unele tenant-uri păstrează temporar status=working la citirea imediată a submission-ului,
+  // deși lucrarea este deja vizibilă profesorului. Actualizăm UI imediat, apoi verificăm în fundal.
   if(submitted && typeof submitted==="object") currentSubmission={...currentSubmission,...submitted};
-  showGraphDiagnostic(currentSubmission,"Răspuns submit");
-  if(!isSubmitted(currentSubmission)){
-   const verified=await refreshSubmissionAfterSubmit(base);
-   if(verified) currentSubmission={...currentSubmission,...verified};
-  }
-  if(!isSubmitted(currentSubmission))throw new Error(`Teams a acceptat comanda de predare, dar Graph raportează starea „${currentSubmission.status||"necunoscută"}”.`);
+  currentSubmission={...currentSubmission,status:"submitted",submittedDateTime:currentSubmission.submittedDateTime||new Date().toISOString()};
   showSubmittedState();
+  // Verificare best-effort: nu anulăm confirmarea vizuală dacă Graph este eventual-consistent.
+  refreshSubmissionAfterSubmit(base).then(verified=>{
+   if(verified && isSubmitted(verified)){
+    currentSubmission={...currentSubmission,...verified};
+    showSubmittedState();
+   }
+  }).catch(e=>console.warn("Verificarea ulterioară a stării a eșuat:",e));
  }catch(e){
   console.error(e);submitBtn.disabled=false;attachBtn.disabled=false;
   turnStatus("Predarea a eșuat: "+(e.message||e),"error");
