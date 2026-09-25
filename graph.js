@@ -33,9 +33,9 @@ async function graph(url,token,options={}){
 }
 function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 function isSubmitted(s){return s?.status==="submitted" || !!s?.submittedDateTime;}
-function showGraphDiagnostic(s,label="Graph") {
- const stamp=s?.submittedDateTime?` | submittedDateTime: ${s.submittedDateTime}`:"";
- turnStatus(`${label} status: ${s?.status||"necunoscut"}${stamp}`, isSubmitted(s)?"success":"");
+function stateLabel(s){
+ const labels={assigned:"atribuită",working:"în lucru",submitted:"predată",returned:"returnată",reassigned:"retrimisă pentru lucru"};
+ return labels[s]||s||"—";
 }
 function showSubmittedState(){
  submissionInfo.textContent=`✓ Lucrare predată în Teams${currentSubmission?.submittedDateTime?` la ${fmt(currentSubmission.submittedDateTime)}`:""}.`;
@@ -90,7 +90,7 @@ function render(items){
  assignmentsEl.innerHTML=items.map((a,i)=>`<article class="assignment" data-i="${i}">
  <h3>${esc(a.displayName||"Temă fără titlu")}</h3>
  <p><b>Termen:</b> ${esc(fmt(a.dueDateTime))}</p>
- <p><b>Stare:</b> ${esc(a.status||"—")}</p>
+ <p><b>Stare:</b> ${esc(stateLabel(a.status))}</p>
  <button type="button">Selectează tema</button></article>`).join("");
  assignmentsEl.querySelectorAll(".assignment").forEach(el=>el.onclick=()=>choose(Number(el.dataset.i),el));
 }
@@ -99,7 +99,7 @@ async function choose(i,el){
  assignmentsEl.querySelectorAll(".assignment").forEach(x=>x.classList.remove("selected")); el.classList.add("selected");
  selection.classList.remove("hidden"); turnInActions.classList.add("hidden");
  selectedAssignment.innerHTML=`<b>${esc(selected.displayName)}</b><br>Termen: ${esc(fmt(selected.dueDateTime))}`;
- submissionInfo.textContent="Verific tema și submission-ul contului curent…";
+ submissionInfo.textContent="Verific tema și starea lucrării tale…";
  try{
   const fullAssignment=await graph(`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}?$select=id,classId,displayName,status,allowStudentsToAddResourcesToSubmission,allowLateSubmissions,dueDateTime,closeDateTime`,currentToken);
   selected={...selected,...fullAssignment};
@@ -116,8 +116,8 @@ async function choose(i,el){
   }
   if(subs.length!==1){
    submissionInfo.textContent=subs.length===0
-    ?"Nu există submission asociat acestui cont. Pentru predare, deschide aplicația cu un cont de elev."
-    :`Au fost returnate ${subs.length} submissions. Acesta este un cont cu acces de profesor; V3.2 nu permite predarea din acest mod.`;
+    ?"Nu există o lucrare asociată acestui cont. Pentru predare, deschide aplicația cu un cont de elev."
+    :`Au fost găsite ${subs.length} lucrări. Acest cont are acces de profesor; predarea trebuie făcută din contul elevului.`;
    return;
   }
   currentSubmission=subs[0];
@@ -126,10 +126,10 @@ async function choose(i,el){
    return;
   }
   if(!["working","returned","reassigned"].includes(currentSubmission.status)){
-   submissionInfo.textContent=`Submission detectat, dar starea este „${currentSubmission.status}”. Pentru atașare trebuie să fie în lucru.`;
+   submissionInfo.textContent=`Lucrarea a fost găsită, dar starea este „${stateLabel(currentSubmission.status)}”. Pentru atașare trebuie să fie în lucru.`;
    return;
   }
-  submissionInfo.textContent=`Submission elev detectat: ${currentSubmission.status}. Poți atașa lucrarea HTML.`;
+  submissionInfo.textContent=`Lucrare pregătită: ${stateLabel(currentSubmission.status)}. Poți atașa fișierul HTML.`;
   turnInActions.classList.remove("hidden");
  }catch(e){submissionInfo.textContent="Nu am putut verifica submission-ul: "+e.message;}
 }
@@ -181,7 +181,8 @@ async function performSubmit(){
  const confirmBtn=document.getElementById("confirmSubmit");
  if(modal) modal.style.display="none";
  attachBtn.disabled=true; submitBtn.disabled=true;
- if(confirmBtn) confirmBtn.disabled=true;
+ submitBtn.textContent="Se predă…";
+ if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent="Se predă…";}
  turnStatus("Predau oficial lucrarea în Teams…");
  try{
   const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
@@ -198,10 +199,10 @@ async function performSubmit(){
    if(verified && isSubmitted(verified)){currentSubmission={...currentSubmission,...verified};showSubmittedState();}
   }).catch(e=>console.warn("Verificarea ulterioară a stării a eșuat:",e));
  }catch(e){
-  console.error(e); submitBtn.disabled=false; attachBtn.disabled=false;
+  console.error(e); submitBtn.disabled=false; attachBtn.disabled=false; submitBtn.textContent="📤 Predă în Teams";
   turnStatus("Predarea a eșuat: "+(e.message||e),"error");
  }finally{
-  if(confirmBtn) confirmBtn.disabled=false;
+  if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent="📤 Confirmă predarea";}
  }
 }
 
@@ -219,6 +220,7 @@ const confirmSubmitBtn=document.getElementById("confirmSubmit");
 if(cancelSubmitBtn) cancelSubmitBtn.onclick=()=>{if(submitModal)submitModal.style.display="none";};
 if(confirmSubmitBtn) confirmSubmitBtn.onclick=performSubmit;
 if(submitModal) submitModal.addEventListener("click",e=>{if(e.target===submitModal)submitModal.style.display="none";});
+document.addEventListener("keydown",e=>{if(e.key==="Escape" && submitModal?.style.display==="flex")submitModal.style.display="none";});
 
 async function load(){
  connectBtn.disabled=true;refreshBtn.disabled=true;
