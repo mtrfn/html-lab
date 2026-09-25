@@ -2,10 +2,10 @@
 <html lang="ro">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HTML Lab V3.6</title><link rel="stylesheet" href="style.css">
+<title>HTML Lab V3.7</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.6</b></header>
+<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.7</b></header>
 <main>
 <section class="graph">
 <div>
@@ -47,8 +47,9 @@
 <optgroup label="HTML avansat"><option value="attributes">Atributele etichetelor</option><option value="forms">Formulare și controale</option><option value="iframe">iframe – conținut încorporat</option></optgroup>
 <optgroup label="Layout"><option value="frames">Frame / Frameset (istoric)</option><option value="grid">CSS Grid – layout modern</option></optgroup>
 <optgroup label="Proiecte"><option value="project">Mini-site</option></optgroup>
+<optgroup id="customLessonsGroup" label="Lecțiile profesorului" hidden></optgroup>
 </select>
-<button id="run" class="primary">▶ Rulează</button><button id="save">💾 Salvează local</button><button id="reset">↺ Reset</button><button id="helpBtn" type="button" class="help-btn">💡 Ajutor</button><span id="status"></span>
+<button id="run" class="primary">▶ Rulează</button><button id="save">💾 Salvează local</button><button id="reset">↺ Reset</button><button id="helpBtn" type="button" class="help-btn">💡 Ajutor</button><button id="teacherBtn" type="button" class="teacher-btn">👨‍🏫 Editor profesor</button><span id="status"></span>
 </section>
 
 <section id="helpPanel" class="help-panel hidden" aria-live="polite">
@@ -68,8 +69,33 @@
 <div class="panel"><h2>Cod HTML</h2><textarea id="editor" spellcheck="false"></textarea></div>
 <div class="panel"><h2>Rezultat</h2><iframe id="preview" sandbox="allow-forms allow-modals"></iframe></div>
 </section>
-<p class="note">V3.6 adaugă Biblioteca de lecții, organizată progresiv, păstrând ajutorul contextual în trei trepte. HTML Lab atașează pagina HTML și o copie text a codului-sursă, astfel încât profesorul să poată verifica atât rezultatul, cât și codul.</p>
+<p class="note">V3.7 adaugă Editorul de lecții/Help pentru profesor și protecție la Reset. V3.6 a adăugat Biblioteca de lecții, organizată progresiv, păstrând ajutorul contextual în trei trepte. HTML Lab atașează pagina HTML și o copie text a codului-sursă, astfel încât profesorul să poată verifica atât rezultatul, cât și codul.</p>
 </main>
+
+<div id="teacherModal" class="modal hidden">
+  <div class="modal-card teacher-card" role="dialog" aria-modal="true" aria-labelledby="teacherTitle">
+    <div class="modal-head"><div><span class="help-kicker">Mod profesor</span><h2 id="teacherTitle">Editor de lecții și Help</h2></div><button id="closeTeacher" type="button" aria-label="Închide">✕</button></div>
+    <p class="muted">Creează o lecție fără să modifici JavaScript-ul. Lecțiile sunt salvate local în acest browser și pot fi exportate/importate ca JSON.</p>
+    <div class="teacher-grid">
+      <label>Titlul lecției<input id="lessonTitle" placeholder="Ex.: Imagini și legături"></label>
+      <label>Categoria<input id="lessonCategory" placeholder="Ex.: Conținut"></label>
+      <label class="wide">Cerința pentru elev<textarea id="lessonTask" rows="3" placeholder="Ex.: Realizează o pagină care conține..."></textarea></label>
+      <label class="wide">Cod HTML inițial<textarea id="lessonCode" rows="8" spellcheck="false" placeholder="<!DOCTYPE html>..."></textarea></label>
+      <label class="wide">Indiciul 1 — orientare<textarea id="lessonHint1" rows="3"></textarea></label>
+      <label class="wide">Indiciul 2 — sintaxă<textarea id="lessonHint2" rows="3"></textarea></label>
+      <label class="wide">Indiciul 3 — exemplu<textarea id="lessonHint3" rows="4"></textarea></label>
+    </div>
+    <div class="teacher-actions">
+      <button id="newLesson" type="button">＋ Lecție nouă</button>
+      <button id="loadCurrentLesson" type="button">↙ Preia lecția curentă</button>
+      <button id="saveLesson" type="button" class="primary">💾 Salvează lecția</button>
+      <button id="deleteLesson" type="button">🗑 Șterge lecția</button>
+      <button id="exportLessons" type="button">⬇ Exportă JSON</button>
+      <button id="importLessons" type="button">⬆ Importă JSON</button><input id="importLessonsFile" type="file" accept="application/json,.json" hidden>
+    </div>
+    <p id="teacherStatus" class="teacher-status"></p>
+  </div>
+</div>
 <div id="submitConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;padding:20px">
   <div role="dialog" aria-modal="true" aria-labelledby="submitConfirmTitle" style="width:min(520px,100%);background:white;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.25);padding:22px">
     <h3 id="submitConfirmTitle" style="margin:0 0 10px">Confirmă predarea</h3>
@@ -83,5 +109,5 @@
 <script src="https://res.cdn.office.net/teams-js/2.56.0/js/MicrosoftTeams.min.js"></script>
 <script src="teams-init.js"></script>
 <script src="app.js"></script>
-<script type="module" src="graph.js?v=350"></script>
+<script type="module" src="graph.js?v=370"></script>
 </body></html>

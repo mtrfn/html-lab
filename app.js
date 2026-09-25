@@ -62,3 +62,67 @@ closeHelp.onclick=()=>helpPanel.classList.add("hidden");
 nextHelp.onclick=()=>{if(helpLevel<currentHelp().levels.length-1){helpLevel++;renderHelp()}};
 prevHelp.onclick=()=>{if(helpLevel>0){helpLevel--;renderHelp()}};
 X.addEventListener("change",()=>{if(!helpPanel.classList.contains("hidden")){helpLevel=0;renderHelp()}});
+
+// V3.7 — Protecție Reset + Editor de lecții/Help pentru profesor.
+const CUSTOM_KEY="htmlLabTeacherLessonsV37";
+let customLessons={};
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function textHelp(s){return esc(s).replace(/\n/g,"<br>")}
+function loadCustomLessons(){try{customLessons=JSON.parse(localStorage.getItem(CUSTOM_KEY)||"{}")||{}}catch{customLessons={}};refreshCustomLessons()}
+function refreshCustomLessons(){
+ const g=document.getElementById("customLessonsGroup"); g.innerHTML="";
+ const items=Object.entries(customLessons); g.hidden=!items.length;
+ items.sort((a,b)=>(a[1].title||"").localeCompare(b[1].title||"","ro")).forEach(([id,l])=>{const o=document.createElement("option");o.value=id;o.textContent=l.title||"Lecție fără titlu";g.appendChild(o)});
+}
+function lessonCodeFor(id=X.value){return customLessons[id]?.code ?? examples[id] ?? examples.basic}
+function helpFor(id=X.value){
+ const l=customLessons[id]; if(!l)return helpData[id]||helpData.basic;
+ return {title:l.title,levels:[{label:"Indiciu",html:textHelp(l.hints?.[0]||"Nu a fost definit încă un indiciu.")},{label:"Sintaxă",html:textHelp(l.hints?.[1]||"Nu a fost definit încă un indiciu.")},{label:"Exemplu",html:textHelp(l.hints?.[2]||"Nu a fost definit încă un exemplu.")}]};
+}
+currentHelp=()=>helpFor(X.value);
+function showTask(){
+ let old=document.getElementById("lessonTaskBox"); if(old)old.remove();
+ const l=customLessons[X.value]; if(!l?.task)return;
+ const box=document.createElement("div");box.id="lessonTaskBox";box.className="lesson-task";box.innerHTML="<b>Cerință:</b> "+esc(l.task);
+ document.querySelector("section.bar:not(.file)").insertAdjacentElement("afterend",box);
+}
+X.onchange=()=>{E.value=lessonCodeFor();run();showTask();if(!helpPanel.classList.contains("hidden")){helpLevel=0;renderHelp()}};
+document.getElementById("reset").onclick=()=>{
+ const original=lessonCodeFor();
+ if(E.value===original){msg("Codul este deja la forma inițială.");return}
+ if(confirm("Reinițializezi codul?\n\nModificările nesalvate din editor vor fi pierdute.")){E.value=original;run();msg("Codul a fost reinițializat.")}
+};
+
+const teacherModal=document.getElementById("teacherModal"),teacherStatus=document.getElementById("teacherStatus");
+const fields={title:document.getElementById("lessonTitle"),category:document.getElementById("lessonCategory"),task:document.getElementById("lessonTask"),code:document.getElementById("lessonCode"),h1:document.getElementById("lessonHint1"),h2:document.getElementById("lessonHint2"),h3:document.getElementById("lessonHint3")};
+let editingLessonId=null;
+function teacherMsg(t,bad=false){teacherStatus.textContent=t;teacherStatus.style.color=bad?"#b42318":"#137a4a"}
+function clearTeacher(){editingLessonId=null;Object.values(fields).forEach(f=>f.value="");fields.category.value="Lecțiile mele";fields.code.value='<!DOCTYPE html>\n<html lang="ro">\n<head><meta charset="UTF-8"><title>Lecția mea</title></head>\n<body>\n\n</body>\n</html>';teacherMsg("Lecție nouă.")}
+function fillTeacher(l,id=null){editingLessonId=id;fields.title.value=l.title||"";fields.category.value=l.category||"Lecțiile mele";fields.task.value=l.task||"";fields.code.value=l.code||"";fields.h1.value=l.hints?.[0]||"";fields.h2.value=l.hints?.[1]||"";fields.h3.value=l.hints?.[2]||"";teacherMsg(id?"Editezi o lecție creată de profesor.":"Ai preluat lecția curentă ca punct de plecare. La salvare va fi creată o copie personalizată.")}
+document.getElementById("teacherBtn").onclick=()=>{teacherModal.classList.remove("hidden"); if(customLessons[X.value])fillTeacher(customLessons[X.value],X.value);else clearTeacher()};
+document.getElementById("closeTeacher").onclick=()=>teacherModal.classList.add("hidden");
+teacherModal.addEventListener("click",e=>{if(e.target===teacherModal)teacherModal.classList.add("hidden")});
+document.getElementById("newLesson").onclick=clearTeacher;
+document.getElementById("loadCurrentLesson").onclick=()=>{
+ const id=X.value,l=customLessons[id]; if(l){fillTeacher(l,id);return}
+ const h=helpData[id]||helpData.basic; fillTeacher({title:h.title,category:"Adaptată din bibliotecă",task:"",code:lessonCodeFor(id),hints:h.levels.map(x=>x.html.replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim())});
+};
+document.getElementById("saveLesson").onclick=()=>{
+ const title=fields.title.value.trim(); if(!title){teacherMsg("Completează titlul lecției.",true);fields.title.focus();return}
+ const code=fields.code.value.trim(); if(!code){teacherMsg("Completează codul HTML inițial.",true);fields.code.focus();return}
+ const id=editingLessonId||("teacher_"+Date.now());
+ customLessons[id]={title,category:fields.category.value.trim()||"Lecțiile mele",task:fields.task.value.trim(),code:fields.code.value,hints:[fields.h1.value.trim(),fields.h2.value.trim(),fields.h3.value.trim()]};
+ localStorage.setItem(CUSTOM_KEY,JSON.stringify(customLessons));editingLessonId=id;refreshCustomLessons();X.value=id;E.value=code;run();showTask();teacherMsg("✓ Lecția a fost salvată local și adăugată în bibliotecă.");
+};
+document.getElementById("deleteLesson").onclick=()=>{
+ if(!editingLessonId||!customLessons[editingLessonId]){teacherMsg("Poți șterge numai o lecție creată în Editorul profesor.",true);return}
+ if(!confirm(`Ștergi lecția „${customLessons[editingLessonId].title}”?`))return;
+ delete customLessons[editingLessonId];localStorage.setItem(CUSTOM_KEY,JSON.stringify(customLessons));refreshCustomLessons();X.value="basic";E.value=examples.basic;run();showTask();clearTeacher();teacherMsg("Lecția a fost ștearsă.")
+};
+document.getElementById("exportLessons").onclick=()=>{
+ const data={format:"HTML-Lab-lessons",version:"3.7",exportedAt:new Date().toISOString(),lessons:customLessons};
+ const u=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="html-lab-lectii-profesor.json";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);teacherMsg("Lecțiile au fost exportate în JSON.")
+};
+const importFile=document.getElementById("importLessonsFile");document.getElementById("importLessons").onclick=()=>importFile.click();
+importFile.onchange=async()=>{try{const obj=JSON.parse(await importFile.files[0].text());const incoming=obj.lessons||obj;if(!incoming||typeof incoming!=="object")throw new Error();customLessons={...customLessons,...incoming};localStorage.setItem(CUSTOM_KEY,JSON.stringify(customLessons));refreshCustomLessons();teacherMsg(`✓ Import reușit. Biblioteca profesorului conține ${Object.keys(customLessons).length} lecții.`)}catch{teacherMsg("Fișier JSON invalid pentru HTML Lab.",true)}finally{importFile.value=""}};
+loadCustomLessons();showTask();
