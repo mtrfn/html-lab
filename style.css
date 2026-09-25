@@ -18,3 +18,9 @@ textarea,iframe{display:block;width:100%;height:56vh;min-height:370px;border:0}t
 .danger-note{color:#b42318;font-weight:600}
 .success-note{color:#137a4a;font-weight:600}
 .diagnostics{margin-top:12px;padding:11px;border:1px dashed #aebbd0;border-radius:9px;background:#fcfdff}.diagnostics h4{margin:0 0 7px}.diagnostics ol{margin:0;padding-left:25px;line-height:1.75}.diag-ok{color:#137a4a;font-weight:650}.diag-fail{color:#b42318;font-weight:650}.diag-run{color:#1f5fbf;font-weight:650}#diagDetails{white-space:pre-wrap;word-break:break-word;max-height:230px;overflow:auto;background:#f4f6f9;padding:8px;border-radius:6px;font-size:.78rem}
+
+/* V3.5 — Ajutor contextual */
+.help-btn{font-weight:700;border-color:#e5b94c;background:#fff9e8;color:#6b4f00}
+.help-panel{margin-top:14px;padding:16px;background:#fffdf5;border:1px solid #ead79a;border-radius:12px;box-shadow:0 6px 20px rgba(51,65,85,.06)}
+.help-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.help-head h2{margin:2px 0 0;font-size:1.12rem}.help-kicker{text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:800;color:#8a6a10}.help-head button{min-height:36px;padding:5px 10px}.help-progress{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 0 10px;font-size:.88rem;color:#6b7280}.help-content{padding:14px;background:#fff;border:1px solid #eee2bd;border-radius:9px;line-height:1.6}.help-content code{background:#f2f4f7;padding:2px 5px;border-radius:4px;font-family:Consolas,"Courier New",monospace}.help-content pre{overflow:auto;background:#172033;color:#f8fafc;padding:12px;border-radius:8px;line-height:1.5}.help-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:12px}.help-note{margin:10px 0 0;color:#7b6a38;font-size:.86rem}
+@media(max-width:760px){.help-actions button{flex:1}.help-progress{display:block}.help-progress span{display:block;margin:3px 0}}
