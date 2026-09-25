@@ -2,10 +2,10 @@
 <html lang="ro">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HTML Lab V3.3.6</title><link rel="stylesheet" href="style.css">
+<title>HTML Lab V3.3.7</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.3.6</b></header>
+<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.3.7</b></header>
 <main>
 <section class="graph">
 <div>
@@ -31,7 +31,6 @@
   <button id="submitWork" type="button" class="submit-btn" disabled>📤 Predă în Teams</button>
 </div>
 <p id="turnInStatus" class="muted"></p>
-<div id="submitDiagnostic" style="display:none;margin-top:12px;padding:12px;border:1px dashed #94a3b8;border-radius:8px;background:#f8fafc"><b>Diagnostic predare V3.3.6</b><pre id="submitDiagnosticText" style="white-space:pre-wrap;margin:8px 0 0;font-size:13px"></pre></div>
 </div>
 </section>
 
@@ -48,10 +47,20 @@
 <div class="panel"><h2>Cod HTML</h2><textarea id="editor" spellcheck="false"></textarea></div>
 <div class="panel"><h2>Rezultat</h2><iframe id="preview" sandbox="allow-forms allow-modals"></iframe></div>
 </section>
-<p class="note"><b>V3.3.6:</b> la atașare, HTML Lab trimite atât pagina HTML, cât și o copie text a codului-sursă pentru evaluare. După predare, starea este verificată în Teams și confirmată elevului.</p>
+<p class="note"><b>V3.3.7:</b> la atașare, HTML Lab trimite atât pagina HTML, cât și o copie text a codului-sursă pentru evaluare. Predarea folosește o confirmare proprie, compatibilă cu Teams; după succes, butonul devine „✓ Predată”.</p>
 </main>
+<div id="submitConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div role="dialog" aria-modal="true" aria-labelledby="submitConfirmTitle" style="width:min(520px,100%);background:white;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.25);padding:22px">
+    <h3 id="submitConfirmTitle" style="margin:0 0 10px">Confirmă predarea</h3>
+    <p id="submitConfirmText" style="margin:0 0 18px;line-height:1.45"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button id="cancelSubmit" type="button">Anulează</button>
+      <button id="confirmSubmit" type="button" class="submit-btn">📤 Confirmă predarea</button>
+    </div>
+  </div>
+</div>
 <script src="https://res.cdn.office.net/teams-js/2.56.0/js/MicrosoftTeams.min.js"></script>
 <script src="teams-init.js"></script>
 <script src="app.js"></script>
-<script type="module" src="graph.js?v=336"></script>
+<script type="module" src="graph.js?v=337"></script>
 </body></html>

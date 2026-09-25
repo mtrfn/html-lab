@@ -176,43 +176,50 @@ async function attachWork(){
   console.error(e);turnStatus("Atașarea a eșuat: "+(e.message||e),"error");
  }finally{attachBtn.disabled=false;}
 }
-async function submitWork(){
- const diagBox=document.getElementById("submitDiagnostic"), diagText=document.getElementById("submitDiagnosticText");
- const lines=[]; const log=(x)=>{lines.push(x); if(diagBox)diagBox.style.display="block"; if(diagText)diagText.textContent=lines.join("\n");};
- log("1. ✓ Handler submitWork pornit");
- log(`2. Stare internă: selected=${!!selected}, submission=${!!currentSubmission}, attachedResource=${!!attachedResource}`);
- if(!selected||!currentSubmission||!attachedResource){ log("STOP: lipsește una dintre condițiile necesare."); return; }
- log("3. Deschid confirmarea de predare…");
- const ok=confirm(`Predai acum lucrarea „${cleanFileName()}” la tema „${selected.displayName}”?\n\nDupă confirmare, lucrarea va apărea ca predată în Teams.`);
- log(`4. Confirmare utilizator: ${ok?"DA":"NU"}`);
- if(!ok)return;
- attachBtn.disabled=true;submitBtn.disabled=true;turnStatus("Predau oficial lucrarea în Teams…");
+async function performSubmit(){
+ const modal=document.getElementById("submitConfirmModal");
+ const confirmBtn=document.getElementById("confirmSubmit");
+ if(modal) modal.style.display="none";
+ attachBtn.disabled=true; submitBtn.disabled=true;
+ if(confirmBtn) confirmBtn.disabled=true;
+ turnStatus("Predau oficial lucrarea în Teams…");
  try{
   const base=`/education/classes/${encodeURIComponent(selected.classId)}/assignments/${encodeURIComponent(selected.id)}/submissions/${encodeURIComponent(currentSubmission.id)}`;
-  log("5. → POST /submit trimis");
   const r=await fetch("https://graph.microsoft.com/v1.0"+base+"/submit",{method:"POST",headers:{Authorization:`Bearer ${currentToken}`}});
   const raw=await r.text();
-  log(`6. ${r.ok?"✓":"✗"} HTTP ${r.status} ${r.statusText||""}`);
-  log(`7. Răspuns brut: ${raw||"(corp gol)"}`);
   if(!r.ok) throw new Error(`Graph ${r.status}: ${raw}`);
   let submitted=null;
   if(raw){try{submitted=JSON.parse(raw);}catch{}}
-  log(`8. Graph status returnat: ${submitted?.status||"(nu este prezent în răspuns)"}`);
   if(submitted && typeof submitted==="object") currentSubmission={...currentSubmission,...submitted};
+  // POST /submit a reușit: confirmăm imediat în UI, fără să depindem de întârzierea GET-ului Graph.
   currentSubmission={...currentSubmission,status:"submitted",submittedDateTime:currentSubmission.submittedDateTime||new Date().toISOString()};
   showSubmittedState();
-  log(`9. ✓ Actualizare UI executată | buton="${submitBtn.textContent}" | disabled=${submitBtn.disabled}`);
-  // Nu suprascriem mesajul de succes cu diagnosticul; panoul separat rămâne vizibil.
   refreshSubmissionAfterSubmit(base).then(verified=>{
-   log(`10. Verificare GET: status=${verified?.status||"necunoscut"}, submittedDateTime=${verified?.submittedDateTime||"—"}`);
    if(verified && isSubmitted(verified)){currentSubmission={...currentSubmission,...verified};showSubmittedState();}
-  }).catch(e=>log("10. ✗ GET verificare: "+(e.message||e)));
+  }).catch(e=>console.warn("Verificarea ulterioară a stării a eșuat:",e));
  }catch(e){
-  console.error(e);submitBtn.disabled=false;attachBtn.disabled=false;
+  console.error(e); submitBtn.disabled=false; attachBtn.disabled=false;
   turnStatus("Predarea a eșuat: "+(e.message||e),"error");
-  log("EROARE: "+(e.message||e));
+ }finally{
+  if(confirmBtn) confirmBtn.disabled=false;
  }
 }
+
+function submitWork(){
+ if(!selected||!currentSubmission||!attachedResource)return;
+ const modal=document.getElementById("submitConfirmModal");
+ const text=document.getElementById("submitConfirmText");
+ if(text) text.textContent=`Predai acum lucrarea „${cleanFileName()}” la tema „${selected.displayName}”? După confirmare, lucrarea va fi trimisă oficial în Microsoft Teams.`;
+ if(modal) modal.style.display="flex";
+}
+
+const submitModal=document.getElementById("submitConfirmModal");
+const cancelSubmitBtn=document.getElementById("cancelSubmit");
+const confirmSubmitBtn=document.getElementById("confirmSubmit");
+if(cancelSubmitBtn) cancelSubmitBtn.onclick=()=>{if(submitModal)submitModal.style.display="none";};
+if(confirmSubmitBtn) confirmSubmitBtn.onclick=performSubmit;
+if(submitModal) submitModal.addEventListener("click",e=>{if(e.target===submitModal)submitModal.style.display="none";});
+
 async function load(){
  connectBtn.disabled=true;refreshBtn.disabled=true;
  try{
