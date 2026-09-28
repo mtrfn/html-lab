@@ -1,4 +1,10 @@
-# Verificare V3.8
+# Verificare diagnostic V3.8.1
+
+Testele simulate ale bibliotecii au trecut, inclusiv erori 401/403/404, JSON invalid și mesaje cu etapa operației. Mesajele nu conțin tokenul de test sau adresa descărcării. Cauza erorii reale din Teams rămâne neconfirmată până la primirea diagnosticului.
+
+În graph.js s-a schimbat față de V3.8 numai parametrul de versiune al importului. Mai jos este raportul verificărilor de bază V3.8; funcțiile editorului nu au fost modificate în V3.8.1.
+
+# Verificare V3.8.1
 
 Microsoft Edge headless / Playwright. Răspunsurile Teams, MSAL, Microsoft Graph și descărcarea fișierului au fost simulate, fără acces la conturi reale și fără cereri de scriere în Microsoft 365.
 

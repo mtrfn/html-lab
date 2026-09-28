@@ -49,7 +49,7 @@ async function readLimitedJSON(response) {
       if (size > MAX_BYTES) { await reader.cancel(); throw new Error("size"); }
       text += decoder.decode(value, {stream: true});
     }
-    return JSON.parse(text + decoder.decode());
+    try { return JSON.parse(text + decoder.decode()); } catch { throw new Error("json"); }
   } finally { reader.releaseLock(); }
 }
 
@@ -63,6 +63,7 @@ export async function loadClassLibrary(teamId, getToken) {
   const aborter = new AbortController(); controller = aborter;
   const timeout = setTimeout(() => aborter.abort(), 20000);
   status("Încarc lecțiile private ale clasei…");
+  let stage="autentificare", httpStatus=null;
   try {
     const auth = await getToken();
     if (request !== generation) return;
@@ -70,29 +71,46 @@ export async function loadClassLibrary(teamId, getToken) {
     const headers = {Authorization: "Bearer " + auth.accessToken};
     const group = encodeURIComponent(teamId);
     // Microsoft verifica apartenenta la clasa pentru acest endpoint delegat.
+    stage="verificare clasă";
     const membership = await fetch("https://graph.microsoft.com/v1.0/education/classes/" + group + "/teachers?$select=id",
       {headers, cache: "no-store", signal: aborter.signal});
+    httpStatus=membership.status;
     if (!membership.ok) throw new Error(membership.status === 401 ? "auth" : "membership");
+    stage="localizare fișier";httpStatus=null;
     const metadata = await fetch("https://graph.microsoft.com/v1.0/groups/" + group + "/drive/root:/HTML-Lab/lectii.json?$select=id,size,file,@microsoft.graph.downloadUrl",
       {headers, cache: "no-store", signal: aborter.signal});
+    httpStatus=metadata.status;
     if (!metadata.ok) throw new Error(metadata.status === 404 ? "missing" : metadata.status === 401 ? "auth" : "access");
+    stage="date fișier";
     const item = await metadata.json();
     if (!item.file || typeof item.size !== "number") throw new Error("format");
     if (item.size > MAX_BYTES) throw new Error("size");
-    const downloadUrl = new URL(item["@microsoft.graph.downloadUrl"]);
-    if (downloadUrl.protocol !== "https:") throw new Error("format");
+    if(typeof item["@microsoft.graph.downloadUrl"]!=="string")throw new Error("url");
+    let downloadUrl;
+    try{downloadUrl = new URL(item["@microsoft.graph.downloadUrl"]);}catch{throw new Error("url")}
+    if (downloadUrl.protocol !== "https:") throw new Error("url");
     // URL temporar Microsoft, fara token, cookie-uri sau referer.
+    stage="descărcare SharePoint";httpStatus=null;
     const response = await fetch(downloadUrl.href, {cache: "no-store", credentials: "omit",
       referrerPolicy: "no-referrer", signal: aborter.signal});
+    httpStatus=response.status;
     if (!response.ok) throw new Error("download");
-    const lessons = validateLibrary(await readLimitedJSON(response));
+    stage="citire JSON";
+    const data=await readLimitedJSON(response);
+    stage="validare lecții";
+    const lessons = validateLibrary(data);
     if (request !== generation) return;
+    stage="afișare lecții";
     window.htmlLabClassLessons.replace(lessons);
     const count = Object.keys(lessons).length;
     status(count === 1 ? "O lecție disponibilă în „Lecțiile clasei”." : count ? count + " lecții disponibile în „Lecțiile clasei”." : "Biblioteca clasei nu conține încă lecții.");
   } catch (error) {
     if (request !== generation) return;
+    window.htmlLabClassLessons.clear();
     const messages = {
+      json: "Fișierul descărcat nu este un JSON valid. Exportă din nou lectii.json din HTML Lab.",
+      url: "Microsoft nu a furnizat o adresă validă pentru descărcarea fișierului.",
+      download: "SharePoint a refuzat descărcarea fișierului.",
       missing: "Biblioteca nu este publicată încă. Profesorul trebuie să adauge HTML-Lab/lectii.json în biblioteca de documente a clasei.",
       membership: "Nu pot verifica apartenența la clasă. Verifică contul Microsoft și accesul la clasa Teams.",
       access: "Nu ai acces la fișierul bibliotecii. Profesorul trebuie să verifice permisiunile din SharePoint.",
@@ -100,7 +118,10 @@ export async function loadClassLibrary(teamId, getToken) {
       size: "Biblioteca depășește limita de 2 MB.",
       format: "Fișierul bibliotecii nu are formatul așteptat. Profesorul trebuie să îl exporte din nou."
     };
-    status(messages[error.message] || "Biblioteca nu a putut fi încărcată. Verifică conexiunea și apasă Actualizează lecțiile.");
+    const reason=aborter.signal.aborted?"timp expirat":error instanceof TypeError?"eroare de rețea/browser":Object.hasOwn(messages,error.message)?error.message:"eroare neașteptată";
+    const detail=" [Etapă: "+stage+"; "+reason+(httpStatus===null?"":"; HTTP "+httpStatus)+"]";
+    status((messages[error.message] || (aborter.signal.aborted?"Încărcarea a depășit timpul disponibil.":"Biblioteca nu a putut fi încărcată."))+detail);
+    // Nu afișăm obiectul erorii: poate conține adrese temporare sau date de autentificare.
   } finally {
     clearTimeout(timeout);
     if (request === generation) refreshBtn.disabled = false;
