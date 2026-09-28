@@ -1,4 +1,4 @@
-import {loadClassLibrary,resetClassLibrary} from "./class-library.js?v=381";
+import {loadClassLibrary,resetClassLibrary} from "./class-library.js?v=382";
 import { createNestablePublicClientApplication, InteractionRequiredAuthError } from "https://esm.sh/@azure/msal-browser@5.22.0";
 
 const CLIENT_ID="186ef62f-0e5b-47c2-ab13-2a33600f55cd";

@@ -77,15 +77,36 @@ export async function loadClassLibrary(teamId, getToken) {
     httpStatus=membership.status;
     if (!membership.ok) throw new Error(membership.status === 401 ? "auth" : "membership");
     stage="localizare fișier";httpStatus=null;
-    const metadata = await fetch("https://graph.microsoft.com/v1.0/groups/" + group + "/drive/root:/HTML-Lab/lectii.json?$select=id,size,file,@microsoft.graph.downloadUrl",
+    const metadata = await fetch("https://graph.microsoft.com/v1.0/groups/" + group + "/drive/root:/HTML-Lab/lectii.json",
       {headers, cache: "no-store", signal: aborter.signal});
     httpStatus=metadata.status;
     if (!metadata.ok) throw new Error(metadata.status === 404 ? "missing" : metadata.status === 401 ? "auth" : "access");
     stage="date fișier";
-    const item = await metadata.json();
+    let item = await metadata.json();
     if (!item.file || typeof item.size !== "number") throw new Error("format");
     if (item.size > MAX_BYTES) throw new Error("size");
-    if(typeof item["@microsoft.graph.downloadUrl"]!=="string")throw new Error("url");
+    // Unele răspunsuri după cale nu includ adresa temporară. Recitim același fișier după ID.
+    const hasDownloadUrl=value=>{
+      try{return typeof value==="string"&&new URL(value).protocol==="https:"}catch{return false}
+    };
+    if(!hasDownloadUrl(item["@microsoft.graph.downloadUrl"])){
+      if(typeof item.id!=="string"||!item.id)throw new Error("url");
+      stage="adresă descărcare după ID";httpStatus=null;
+      const driveId=item.parentReference?.driveId;
+      const itemPath=typeof driveId==="string"&&driveId
+        ?"/drives/"+encodeURIComponent(driveId)+"/items/"+encodeURIComponent(item.id)
+        :"/groups/"+group+"/drive/items/"+encodeURIComponent(item.id);
+      const details=await fetch("https://graph.microsoft.com/v1.0"+itemPath,
+        {headers,cache:"no-store",signal:aborter.signal});
+      httpStatus=details.status;
+      if(!details.ok)throw new Error(details.status===401?"auth":details.status===404?"missing":"access");
+      const resolved=await details.json();
+      if(resolved.id!==item.id)throw new Error("format");
+      item=resolved;
+      if(!item.file||typeof item.size!=="number")throw new Error("format");
+      if(item.size>MAX_BYTES)throw new Error("size");
+    }
+    if(!hasDownloadUrl(item["@microsoft.graph.downloadUrl"]))throw new Error("url");
     let downloadUrl;
     try{downloadUrl = new URL(item["@microsoft.graph.downloadUrl"]);}catch{throw new Error("url")}
     if (downloadUrl.protocol !== "https:") throw new Error("url");
