@@ -2,10 +2,10 @@
 <html lang="ro">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HTML Lab V3.7</title><link rel="stylesheet" href="style.css">
+<title>HTML Lab V3.7.1</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.7</b></header>
+<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.7.1</b></header>
 <main>
 <section class="graph">
 <div>
@@ -49,6 +49,7 @@
 <optgroup label="Proiecte"><option value="project">Mini-site</option></optgroup>
 <optgroup id="customLessonsGroup" label="Lecțiile profesorului" hidden></optgroup>
 </select>
+<button id="openLesson" type="button" title="Încarcă din nou codul inițial al lecției selectate">Deschide lecția</button>
 <button id="run" class="primary">▶ Rulează</button><button id="save">💾 Salvează local</button><button id="reset">↺ Reset</button><button id="helpBtn" type="button" class="help-btn">💡 Ajutor</button><button id="teacherBtn" type="button" class="teacher-btn">👨‍🏫 Editor profesor</button><span id="status"></span>
 </section>
 
@@ -69,7 +70,7 @@
 <div class="panel"><h2>Cod HTML</h2><textarea id="editor" spellcheck="false"></textarea></div>
 <div class="panel"><h2>Rezultat</h2><iframe id="preview" sandbox="allow-forms allow-modals"></iframe></div>
 </section>
-<p class="note">V3.7 adaugă Editorul de lecții/Help pentru profesor și protecție la Reset. V3.6 a adăugat Biblioteca de lecții, organizată progresiv, păstrând ajutorul contextual în trei trepte. HTML Lab atașează pagina HTML și o copie text a codului-sursă, astfel încât profesorul să poată verifica atât rezultatul, cât și codul.</p>
+<p class="note">V3.7.1 permite deschiderea explicită a lecției selectate și sincronizează Ajutorul după salvare. V3.7 adaugă Editorul de lecții/Help pentru profesor și protecție la Reset. V3.6 a adăugat Biblioteca de lecții, organizată progresiv, păstrând ajutorul contextual în trei trepte. HTML Lab atașează pagina HTML și o copie text a codului-sursă, astfel încât profesorul să poată verifica atât rezultatul, cât și codul.</p>
 </main>
 
 <div id="teacherModal" class="modal hidden">
@@ -108,6 +109,6 @@
 </div>
 <script src="https://res.cdn.office.net/teams-js/2.56.0/js/MicrosoftTeams.min.js"></script>
 <script src="teams-init.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=371"></script>
 <script type="module" src="graph.js?v=370"></script>
 </body></html>

@@ -86,7 +86,13 @@ function showTask(){
  const box=document.createElement("div");box.id="lessonTaskBox";box.className="lesson-task";box.innerHTML="<b>Cerință:</b> "+esc(l.task);
  document.querySelector("section.bar:not(.file)").insertAdjacentElement("afterend",box);
 }
-X.onchange=()=>{E.value=lessonCodeFor();run();showTask();if(!helpPanel.classList.contains("hidden")){helpLevel=0;renderHelp()}};
+// V3.7.1 — Aceeași încărcare la selectare, deschidere explicită și salvare.
+function openSelectedLesson(){
+ E.value=lessonCodeFor();run();showTask();
+ if(!helpPanel.classList.contains("hidden")){helpLevel=0;renderHelp()}
+}
+X.onchange=openSelectedLesson;
+document.getElementById("openLesson").onclick=openSelectedLesson;
 document.getElementById("reset").onclick=()=>{
  const original=lessonCodeFor();
  if(E.value===original){msg("Codul este deja la forma inițială.");return}
@@ -112,7 +118,7 @@ document.getElementById("saveLesson").onclick=()=>{
  const code=fields.code.value.trim(); if(!code){teacherMsg("Completează codul HTML inițial.",true);fields.code.focus();return}
  const id=editingLessonId||("teacher_"+Date.now());
  customLessons[id]={title,category:fields.category.value.trim()||"Lecțiile mele",task:fields.task.value.trim(),code:fields.code.value,hints:[fields.h1.value.trim(),fields.h2.value.trim(),fields.h3.value.trim()]};
- localStorage.setItem(CUSTOM_KEY,JSON.stringify(customLessons));editingLessonId=id;refreshCustomLessons();X.value=id;E.value=code;run();showTask();teacherMsg("✓ Lecția a fost salvată local și adăugată în bibliotecă.");
+ localStorage.setItem(CUSTOM_KEY,JSON.stringify(customLessons));editingLessonId=id;refreshCustomLessons();X.value=id;openSelectedLesson();teacherMsg("✓ Lecția a fost salvată local și adăugată în bibliotecă.");
 };
 document.getElementById("deleteLesson").onclick=()=>{
  if(!editingLessonId||!customLessons[editingLessonId]){teacherMsg("Poți șterge numai o lecție creată în Editorul profesor.",true);return}
@@ -120,7 +126,7 @@ document.getElementById("deleteLesson").onclick=()=>{
  delete customLessons[editingLessonId];localStorage.setItem(CUSTOM_KEY,JSON.stringify(customLessons));refreshCustomLessons();X.value="basic";E.value=examples.basic;run();showTask();clearTeacher();teacherMsg("Lecția a fost ștearsă.")
 };
 document.getElementById("exportLessons").onclick=()=>{
- const data={format:"HTML-Lab-lessons",version:"3.7",exportedAt:new Date().toISOString(),lessons:customLessons};
+ const data={format:"HTML-Lab-lessons",version:"3.7.1",exportedAt:new Date().toISOString(),lessons:customLessons};
  const u=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="html-lab-lectii-profesor.json";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);teacherMsg("Lecțiile au fost exportate în JSON.")
 };
 const importFile=document.getElementById("importLessonsFile");document.getElementById("importLessons").onclick=()=>importFile.click();
