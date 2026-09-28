@@ -2,10 +2,10 @@
 <html lang="ro">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HTML Lab V3.7.1</title><link rel="stylesheet" href="style.css">
+<title>HTML Lab V3.7.2</title><link rel="stylesheet" href="style.css?v=372">
 </head>
 <body>
-<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.7.1</b></header>
+<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.7.2</b></header>
 <main>
 <section class="graph">
 <div>
@@ -70,22 +70,35 @@
 <div class="panel"><h2>Cod HTML</h2><textarea id="editor" spellcheck="false"></textarea></div>
 <div class="panel"><h2>Rezultat</h2><iframe id="preview" sandbox="allow-forms allow-modals"></iframe></div>
 </section>
-<p class="note">V3.7.1 permite deschiderea explicită a lecției selectate și sincronizează Ajutorul după salvare. V3.7 adaugă Editorul de lecții/Help pentru profesor și protecție la Reset. V3.6 a adăugat Biblioteca de lecții, organizată progresiv, păstrând ajutorul contextual în trei trepte. HTML Lab atașează pagina HTML și o copie text a codului-sursă, astfel încât profesorul să poată verifica atât rezultatul, cât și codul.</p>
+<p class="note">V3.7.2 organizează Editorul profesorului în secțiuni pliabile. V3.7.1 permite deschiderea explicită a lecției selectate și sincronizează Ajutorul după salvare. V3.7 adaugă Editorul de lecții/Help pentru profesor și protecție la Reset. V3.6 a adăugat Biblioteca de lecții, organizată progresiv, păstrând ajutorul contextual în trei trepte. HTML Lab atașează pagina HTML și o copie text a codului-sursă, astfel încât profesorul să poată verifica atât rezultatul, cât și codul.</p>
 </main>
 
 <div id="teacherModal" class="modal hidden">
   <div class="modal-card teacher-card" role="dialog" aria-modal="true" aria-labelledby="teacherTitle">
     <div class="modal-head"><div><span class="help-kicker">Mod profesor</span><h2 id="teacherTitle">Editor de lecții și Help</h2></div><button id="closeTeacher" type="button" aria-label="Închide">✕</button></div>
     <p class="muted">Creează o lecție fără să modifici JavaScript-ul. Lecțiile sunt salvate local în acest browser și pot fi exportate/importate ca JSON.</p>
-    <div class="teacher-grid">
+    <details class="teacher-section" open>
+      <summary>Date lecție</summary>
+      <div class="teacher-grid">
       <label>Titlul lecției<input id="lessonTitle" placeholder="Ex.: Imagini și legături"></label>
       <label>Categoria<input id="lessonCategory" placeholder="Ex.: Conținut"></label>
       <label class="wide">Cerința pentru elev<textarea id="lessonTask" rows="3" placeholder="Ex.: Realizează o pagină care conține..."></textarea></label>
+      </div>
+    </details>
+    <details class="teacher-section">
+      <summary>Cod inițial</summary>
+      <div class="teacher-grid">
       <label class="wide">Cod HTML inițial<textarea id="lessonCode" rows="8" spellcheck="false" placeholder="<!DOCTYPE html>..."></textarea></label>
+      </div>
+    </details>
+    <details class="teacher-section">
+      <summary>Help</summary>
+      <div class="teacher-grid">
       <label class="wide">Indiciul 1 — orientare<textarea id="lessonHint1" rows="3"></textarea></label>
       <label class="wide">Indiciul 2 — sintaxă<textarea id="lessonHint2" rows="3"></textarea></label>
       <label class="wide">Indiciul 3 — exemplu<textarea id="lessonHint3" rows="4"></textarea></label>
     </div>
+    </details>
     <div class="teacher-actions">
       <button id="newLesson" type="button">＋ Lecție nouă</button>
       <button id="loadCurrentLesson" type="button">↙ Preia lecția curentă</button>
@@ -94,7 +107,7 @@
       <button id="exportLessons" type="button">⬇ Exportă JSON</button>
       <button id="importLessons" type="button">⬆ Importă JSON</button><input id="importLessonsFile" type="file" accept="application/json,.json" hidden>
     </div>
-    <p id="teacherStatus" class="teacher-status"></p>
+    <p id="teacherStatus" class="teacher-status" role="status"></p>
   </div>
 </div>
 <div id="submitConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;padding:20px">
@@ -109,6 +122,6 @@
 </div>
 <script src="https://res.cdn.office.net/teams-js/2.56.0/js/MicrosoftTeams.min.js"></script>
 <script src="teams-init.js"></script>
-<script src="app.js?v=371"></script>
+<script src="app.js?v=372"></script>
 <script type="module" src="graph.js?v=370"></script>
 </body></html>

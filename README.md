@@ -1,14 +1,18 @@
-# HTML Lab V3.7.1
+# HTML Lab V3.7.2
 
 Aplicație statică HTML/CSS/JavaScript, pregătită pentru GitHub Pages.
 
 ## Instalare
 
-Copiază conținutul acestui director peste fișierele repository-ului existent, păstrând aceeași adresă de publicare. Nu este necesară compilarea. După publicare, reîncarcă pagina și verifică V3.7.1 în antet. Parametrul app.js?v=371 evită reutilizarea vechiului app.js din cache.
+Copiază conținutul acestui director peste fișierele repository-ului existent, păstrând aceeași adresă de publicare. Nu este necesară compilarea. După publicare, reîncarcă pagina și verifică V3.7.2 în antet. Parametrul app.js?v=372 evită reutilizarea vechiului app.js din cache.
 
 Lecțiile existente sunt păstrate: cheia localStorage rămâne `htmlLabTeacherLessonsV37`. Folosește același browser, profil și aceeași origine; lecțiile locale nu sunt transferate automat pe alt dispozitiv. Nu șterge datele site-ului.
 
-## Corecție
+## Editor profesor în V3.7.2
+
+Secțiuni pliabile independente: Date lecție (deschisă inițial), Cod inițial și Help. Se pot deschide simultan. Plierea păstrează valorile introduse. Dacă lipsește titlul sau codul la salvare, secțiunea necesară se deschide automat și câmpul primește focus. Lecțiile și formatul lor rămân compatibile cu V3.7/V3.7.1.
+
+## Corecție V3.7.1
 
 Selectarea unei alte lecții funcționează în arhiva V3.7 furnizată, inclusiv după reîncărcare. Nu s-a reprodus o eroare generală de citire din localStorage.
 
@@ -18,6 +22,6 @@ Salvarea folosea separat o variantă incompletă de încărcare: un Ajutor deja 
 
 Numele lucrării rămâne cel introdus de utilizator, conform V3.7: formatul lecțiilor nu conține un nume de fișier. Nivelul maxim de Ajutor utilizat și protecția Reset sunt păstrate.
 
-`graph.js`, `teams-init.js`, `config.html`, stilurile și celelalte fișiere originale sunt nemodificate. Autentificarea și predarea în Teams necesită verificare cu un cont real; testele locale nu fac apeluri Microsoft.
+`graph.js`, `teams-init.js`, `config.html`, celelalte fișiere de integrare sunt nemodificate. Autentificarea și predarea în Teams necesită verificare cu un cont real; testele locale nu fac apeluri Microsoft.
 
 Vezi TESTARE.md pentru rezultate și verificarea manuală.

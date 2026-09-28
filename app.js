@@ -102,6 +102,7 @@ document.getElementById("reset").onclick=()=>{
 const teacherModal=document.getElementById("teacherModal"),teacherStatus=document.getElementById("teacherStatus");
 const fields={title:document.getElementById("lessonTitle"),category:document.getElementById("lessonCategory"),task:document.getElementById("lessonTask"),code:document.getElementById("lessonCode"),h1:document.getElementById("lessonHint1"),h2:document.getElementById("lessonHint2"),h3:document.getElementById("lessonHint3")};
 let editingLessonId=null;
+function focusTeacherField(field){field.closest("details").open=true;field.focus()}
 function teacherMsg(t,bad=false){teacherStatus.textContent=t;teacherStatus.style.color=bad?"#b42318":"#137a4a"}
 function clearTeacher(){editingLessonId=null;Object.values(fields).forEach(f=>f.value="");fields.category.value="Lecțiile mele";fields.code.value='<!DOCTYPE html>\n<html lang="ro">\n<head><meta charset="UTF-8"><title>Lecția mea</title></head>\n<body>\n\n</body>\n</html>';teacherMsg("Lecție nouă.")}
 function fillTeacher(l,id=null){editingLessonId=id;fields.title.value=l.title||"";fields.category.value=l.category||"Lecțiile mele";fields.task.value=l.task||"";fields.code.value=l.code||"";fields.h1.value=l.hints?.[0]||"";fields.h2.value=l.hints?.[1]||"";fields.h3.value=l.hints?.[2]||"";teacherMsg(id?"Editezi o lecție creată de profesor.":"Ai preluat lecția curentă ca punct de plecare. La salvare va fi creată o copie personalizată.")}
@@ -114,8 +115,8 @@ document.getElementById("loadCurrentLesson").onclick=()=>{
  const h=helpData[id]||helpData.basic; fillTeacher({title:h.title,category:"Adaptată din bibliotecă",task:"",code:lessonCodeFor(id),hints:h.levels.map(x=>x.html.replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim())});
 };
 document.getElementById("saveLesson").onclick=()=>{
- const title=fields.title.value.trim(); if(!title){teacherMsg("Completează titlul lecției.",true);fields.title.focus();return}
- const code=fields.code.value.trim(); if(!code){teacherMsg("Completează codul HTML inițial.",true);fields.code.focus();return}
+ const title=fields.title.value.trim(); if(!title){teacherMsg("Completează titlul lecției.",true);focusTeacherField(fields.title);return}
+ const code=fields.code.value.trim(); if(!code){teacherMsg("Completează codul HTML inițial.",true);focusTeacherField(fields.code);return}
  const id=editingLessonId||("teacher_"+Date.now());
  customLessons[id]={title,category:fields.category.value.trim()||"Lecțiile mele",task:fields.task.value.trim(),code:fields.code.value,hints:[fields.h1.value.trim(),fields.h2.value.trim(),fields.h3.value.trim()]};
  localStorage.setItem(CUSTOM_KEY,JSON.stringify(customLessons));editingLessonId=id;refreshCustomLessons();X.value=id;openSelectedLesson();teacherMsg("✓ Lecția a fost salvată local și adăugată în bibliotecă.");
@@ -126,7 +127,7 @@ document.getElementById("deleteLesson").onclick=()=>{
  delete customLessons[editingLessonId];localStorage.setItem(CUSTOM_KEY,JSON.stringify(customLessons));refreshCustomLessons();X.value="basic";E.value=examples.basic;run();showTask();clearTeacher();teacherMsg("Lecția a fost ștearsă.")
 };
 document.getElementById("exportLessons").onclick=()=>{
- const data={format:"HTML-Lab-lessons",version:"3.7.1",exportedAt:new Date().toISOString(),lessons:customLessons};
+ const data={format:"HTML-Lab-lessons",version:"3.7.2",exportedAt:new Date().toISOString(),lessons:customLessons};
  const u=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="html-lab-lectii-profesor.json";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);teacherMsg("Lecțiile au fost exportate în JSON.")
 };
 const importFile=document.getElementById("importLessonsFile");document.getElementById("importLessons").onclick=()=>importFile.click();
