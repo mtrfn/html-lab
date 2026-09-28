@@ -151,7 +151,7 @@ document.getElementById("deleteLesson").onclick=()=>{
  delete customLessons[editingLessonId];localStorage.setItem(CUSTOM_KEY,JSON.stringify(customLessons));refreshCustomLessons();X.value="basic";E.value=examples.basic;run();showTask();clearTeacher();teacherMsg("Lecția a fost ștearsă.")
 };
 document.getElementById("exportLessons").onclick=()=>{
- const data={format:"HTML-Lab-lessons",version:"3.8.2",exportedAt:new Date().toISOString(),lessons:customLessons};
+ const data={format:"HTML-Lab-lessons",version:"3.8.3",exportedAt:new Date().toISOString(),lessons:customLessons};
  const u=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="html-lab-lectii-profesor.json";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);teacherMsg("Lecțiile au fost exportate în JSON.")
 };
 const importFile=document.getElementById("importLessonsFile");document.getElementById("importLessons").onclick=()=>importFile.click();
@@ -161,8 +161,8 @@ loadCustomLessons();showTask();
 // Export local pentru publicare manuală în SharePoint-ul clasei.
 document.getElementById("exportClassLibrary").onclick=async()=>{
  try{
-  const {validateLibrary}=await import("./class-library.js?v=382");
-  const data={format:"HTML-Lab-lessons",version:"3.8.2",exportedAt:new Date().toISOString(),lessons:customLessons};
+  const {validateLibrary}=await import("./class-library.js?v=383");
+  const data={format:"HTML-Lab-lessons",version:"3.8.3",exportedAt:new Date().toISOString(),lessons:customLessons};
   validateLibrary(data);
   const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   if(blob.size>2*1024*1024)throw new Error("size");
@@ -171,3 +171,21 @@ document.getElementById("exportClassLibrary").onclick=async()=>{
   teacherMsg("Fișierul lectii.json conține toate lecțiile locale. Încarcă-l în folderul HTML-Lab din SharePoint-ul clasei; exportul nu publică automat.");
  }catch{teacherMsg("Export nereușit: verifică lecțiile (maximum 200) și limita de 2 MB. Vezi ghidul de distribuire.",true)}
 };
+
+// V3.8.3 — Editorul este disponibil numai după confirmarea rolului în clasa curentă.
+let teacherAllowed=false;
+const teacherControls=["teacherBtn","newLesson","loadCurrentLesson","saveLesson","deleteLesson","exportLessons","importLessons","exportClassLibrary"];
+window.htmlLabTeacherAccess=allowed=>{
+ teacherAllowed=allowed===true;
+ document.getElementById("teacherBtn").hidden=!teacherAllowed;
+ teacherControls.forEach(id=>document.getElementById(id).disabled=!teacherAllowed);
+ importFile.disabled=!teacherAllowed;
+ if(!teacherAllowed)teacherModal.classList.add("hidden");
+};
+for(const id of teacherControls){
+ const el=document.getElementById(id),handler=el.onclick;
+ el.onclick=function(event){if(teacherAllowed)return handler.call(this,event)};
+}
+const teacherImportHandler=importFile.onchange;
+importFile.onchange=function(event){if(teacherAllowed)return teacherImportHandler.call(this,event)};
+window.htmlLabTeacherAccess(false);
