@@ -1,27 +1,25 @@
-# HTML Lab V3.7.2
+# HTML Lab V3.8 — Biblioteca privată a clasei
 
-Aplicație statică HTML/CSS/JavaScript, pregătită pentru GitHub Pages.
+Aplicație statică, pregătită pentru același repository GitHub Pages. Copiază toate fișierele din arhivă peste versiunea existentă, la aceeași adresă. Nu există pas de compilare.
 
-## Instalare
+## Distribuire
+Deschide DISTRIBUIRE.html pentru configurarea folderului privat SharePoint, export și verificarea cu un elev. Biblioteca este citită din rădăcina bibliotecii Documente a grupului clasei, calea HTML-Lab/lectii.json. Fișierul cu lecții NU se publică în repository și NU este inclus în această arhivă.
 
-Copiază conținutul acestui director peste fișierele repository-ului existent, păstrând aceeași adresă de publicare. Nu este necesară compilarea. După publicare, reîncarcă pagina și verifică V3.7.2 în antet. Parametrul app.js?v=372 evită reutilizarea vechiului app.js din cache.
+După Conectare Microsoft, aplicația citește biblioteca clasei detectate în Teams; există și butonul Actualizează lecțiile. În această versiune, publicarea se face prin export și înlocuirea unui singur fișier în SharePoint, nu prin upload automat din editor. Nu este necesară configurarea calculatoarelor elevilor.
 
-Lecțiile existente sunt păstrate: cheia localStorage rămâne `htmlLabTeacherLessonsV37`. Folosește același browser, profil și aceeași origine; lecțiile locale nu sunt transferate automat pe alt dispozitiv. Nu șterge datele site-ului.
+## Compatibilitate
+Cheia lecțiilor locale rămâne htmlLabTeacherLessonsV37. Importul/exportul vechi, lecțiile standard, Help, Reset, editorul pliabil și fluxul existent de predare rămân disponibile. Lecțiile clasei au identificatori separați și nu suprascriu lecțiile locale cu același ID. Actualizarea bibliotecii păstrează lucrarea din editor.
 
-## Editor profesor în V3.7.2
+## Integrare și acces
+class-library.js este nou. graph.js are doar importul componentei, resetarea bibliotecii la reconectare, pornirea încărcării după autentificare și legarea butonului de actualizare. Codul de autentificare, lista SCOPES, atașarea și predarea nu au fost schimbate. Sunt reutilizate permisiunile delegate deja cerute de V3.7: EduRoster.ReadBasic și Files.ReadWrite.All, plus autentificarea existentă.
 
-Secțiuni pliabile independente: Date lecție (deschisă inițial), Cod inițial și Help. Se pot deschide simultan. Plierea păstrează valorile introduse. Dacă lipsește titlul sau codul la salvare, secțiunea necesară se deschide automat și câmpul primește focus. Lecțiile și formatul lor rămân compatibile cu V3.7/V3.7.1.
+Apartenența la clasă este verificată prin endpointul education/classes/{id}/teachers, care impune apartenența pentru acces delegat. Drepturile fișierului sunt aplicate de SharePoint; folderul trebuie configurat pentru citire de către elevi și editare de către profesori. Nu se creează linkuri publice și nu se modifică permisiuni prin aplicație.
 
-## Corecție V3.7.1
+Datele centrale sunt validate înainte de afișare (max. 200 lecții / 2 MB). Tokenul este trimis numai la graph.microsoft.com. Descărcarea folosește URL-ul temporar oferit de Graph, fără Authorization, cookie-uri sau referer. Nu se salvează biblioteca centrală în localStorage. Un acces refuzat sau o încărcare invalidă elimină opțiunile centrale din sesiunea curentă fără a șterge lucrarea ori lecțiile locale.
 
-Selectarea unei alte lecții funcționează în arhiva V3.7 furnizată, inclusiv după reîncărcare. Nu s-a reprodus o eroare generală de citire din localStorage.
+## Surse Microsoft
+- [Verificarea apartenenței prin lista profesorilor](https://learn.microsoft.com/en-us/graph/api/educationclass-list-teachers?view=graph-rest-1.0)
+- [Citirea fișierelor din JavaScript cu URL temporar](https://learn.microsoft.com/en-us/graph/api/driveitem-get-content?view=graph-rest-1.0)
+- [Foldere accesibile elevilor doar pentru citire](https://support.microsoft.com/en-us/teams/education/use-folders-to-create-read-only-files-for-students-or-other-team-members)
 
-Salvarea selectează deja lecția în listă. Confirmarea aceleiași opțiuni nu emite un nou eveniment change în browser, ceea ce explică situația în care reselectarea nu produce nicio acțiune. Butonul «Deschide lecția» permite acum încărcarea explicită a opțiunii curente. Ca la schimbarea lecției în V3.7, deschiderea încarcă codul inițial în editor.
-
-Salvarea folosea separat o variantă incompletă de încărcare: un Ajutor deja deschis rămânea la lecția anterioară, iar spațiile de la marginile codului erau eliminate în editor, dar păstrate în lecția salvată. Salvarea și selectarea folosesc acum aceeași funcție, păstrând exact codul salvat și actualizând cerința, previzualizarea și Ajutorul vizibil.
-
-Numele lucrării rămâne cel introdus de utilizator, conform V3.7: formatul lecțiilor nu conține un nume de fișier. Nivelul maxim de Ajutor utilizat și protecția Reset sunt păstrate.
-
-`graph.js`, `teams-init.js`, `config.html`, celelalte fișiere de integrare sunt nemodificate. Autentificarea și predarea în Teams necesită verificare cu un cont real; testele locale nu fac apeluri Microsoft.
-
-Vezi TESTARE.md pentru rezultate și verificarea manuală.
+Vezi TESTARE.md. Testele Graph sunt simulate; este necesară verificarea reală cu profesor și elev după instalare.

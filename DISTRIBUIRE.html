@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HTML Lab V3.8 — Distribuirea lecțiilor</title>
+<style>body{font:17px/1.65 system-ui,sans-serif;color:#172033;background:#f5f7fb;margin:0;padding:24px}main{max-width:840px;margin:auto;background:white;padding:clamp(20px,4vw,48px);border-radius:16px}h1{line-height:1.2}h2{margin-top:32px}code{overflow-wrap:anywhere;background:#eef2fb;padding:2px 5px;border-radius:4px}a{color:#245ace}li{margin:10px 0}.note{border-left:4px solid #2563eb;padding:12px 18px;background:#f3f7ff}</style></head>
+<body><main>
+<p>HTML Lab V3.8 · Ghid pentru profesor</p>
+<h1>Lecțiile clasei, într-un singur loc</h1>
+<p>Biblioteca se păstrează în SharePoint-ul clasei. Elevii o citesc în HTML Lab după conectarea Microsoft, din fila Teams a clasei. Fișierul cu lecții nu se încarcă pe GitHub.</p>
+<h2>1. Instalează versiunea V3.8</h2>
+<p>Înlocuiește fișierele aplicației în repository-ul existent. Păstrează aceeași adresă a aplicației și verifică V3.8 în antet. Lecțiile locale existente rămân în același browser.</p>
+<h2>2. Pregătește folderul clasei — o singură dată</h2>
+<ol>
+<li>În Teams, deschide clasa, apoi canalul General → Fișiere (sau Partajat) → Deschide în SharePoint.</li>
+<li>În SharePoint, mergi la <strong>rădăcina bibliotecii Documente / Documents</strong>. Dacă ești în folderul General, urcă un nivel. Acolo creează folderul <strong>HTML-Lab</strong>. Acesta trebuie să fie alături de folderul General, nu în interiorul lui.</li>
+<li>La folderul HTML-Lab, deschide <strong>Gestionare acces / Manage access</strong>. Setează grupul membrilor clasei la <strong>Poate vizualiza / Can view</strong> și păstrează dreptul de editare pentru proprietarii clasei (profesori). Profesorii care nu sunt proprietari trebuie să primească separat drept de editare.</li>
+<li>Verifică să nu existe acces pentru „Oricine” sau întreaga organizație. Accesul trebuie limitat la clasa respectivă. Dacă folderul moștenește drepturi prea largi și nu le poți modifica, administratorul școlii trebuie să configureze permisiunile folderului înainte de a adăuga lecții.</li>
+</ol>
+<p class="note">Drepturile reale sunt aplicate de Microsoft 365. Simplul fapt că un buton este ascuns într-o aplicație nu protejează fișierul. <a href="https://support.microsoft.com/en-us/teams/education/use-folders-to-create-read-only-files-for-students-or-other-team-members">Instrucțiunile Microsoft pentru foldere cu acces doar pentru citire</a>.</p>
+<h2>3. Publică biblioteca</h2>
+<ol>
+<li>În HTML Lab, deschide Editor profesor, salvează modificările lecției și apasă <strong>Exportă pentru clasă</strong>.</li>
+<li>Se descarcă <code>lectii.json</code> cu <strong>toate lecțiile locale</strong> din „Lecțiile profesorului”. Exportul nu trimite nimic la Microsoft și nu include automat lecțiile deja centralizate sau exemplele standard.</li>
+<li>Încarcă fișierul în folderul HTML-Lab pregătit mai sus. Calea în biblioteca Documente trebuie să fie exact <code>HTML-Lab/lectii.json</code>. La actualizări, înlocuiește fișierul existent; păstrează numele exact, fără „(1)”.</li>
+<li>În fila HTML Lab a clasei, apasă <strong>Conectare Microsoft</strong>. Lecțiile se vor afișa automat în lista <strong>Lecțiile clasei</strong>. Dacă ești deja conectat, apasă <strong>Actualizează lecțiile</strong>.</li>
+</ol>
+<p>Actualizarea înlocuiește biblioteca centrală completă; lecțiile eliminate din fișier dispar la următoarea încărcare. Păstrează backupul JSON și coordonează editările dacă sunt mai mulți profesori. Fiecare clasă are propriul fișier în propriul SharePoint.</p>
+<h2>4. Verifică o dată cu un elev</h2>
+<ol>
+<li>Elevul deschide fila HTML Lab din clasa corectă și se conectează cu contul școlii.</li>
+<li>Selectează o lecție din „Lecțiile clasei” și verifică codul, cerința, Ajutorul și Reset.</li>
+<li>Verifică în SharePoint că elevul poate citi fișierul, dar nu îl poate modifica. Un cont care nu este membru al clasei nu trebuie să poată accesa fișierul.</li>
+</ol>
+<h2>Ce se păstrează</h2>
+<p>Lecțiile locale, editorul cu secțiuni pliabile, salvarea lucrării, importul/exportul și predarea în Teams continuă să funcționeze. Actualizarea bibliotecii nu schimbă codul deja deschis în editor; după actualizare, selectează lecția dorită. „Preia lecția curentă” poate crea o copie locală a unei lecții a clasei pentru adaptare.</p>
+<p>Biblioteca centrală este păstrată în memorie pe durata paginii, nu copiată automat în biblioteca locală. Lucrările elevilor se salvează local ca înainte; controlul accesului la sursă nu împiedică un membru autorizat să păstreze o copie a conținutului citit.</p>
+<h2>Dacă lecțiile nu apar</h2>
+<ul>
+<li><strong>Deschide fila Teams:</strong> pagina deschisă separat nu are contextul clasei; nu se alege automat o altă clasă.</li>
+<li><strong>Biblioteca nu este publicată:</strong> verifică rădăcina bibliotecii Documente, folderul HTML-Lab și numele lectii.json.</li>
+<li><strong>Acces refuzat:</strong> verifică apartenența contului la clasă și dreptul de citire în SharePoint.</li>
+<li><strong>Format invalid:</strong> exportă din nou din aplicație. Limite: 200 lecții, 2 MB total; titlu/categorie de cel mult 300 caractere, cod 200.000, fiecare indiciu și cerința 20.000. Sunt necesare trei indicii, care pot fi goale.</li>
+<li><strong>Probleme de rețea sau sesiune:</strong> reconectează-te și apasă Actualizează lecțiile. Editorul și lecțiile locale rămân disponibile.</li>
+</ul>
+<p>V3.8 a fost verificată cu răspunsuri Graph simulate. Permisiunile și conectarea reală trebuie validate în mediul școlii. Nu au fost publicate fișiere și nu au fost schimbate permisiuni în contul tău.</p>
+<p><a href="index.html">Înapoi la HTML Lab</a></p>
+</main></body></html>

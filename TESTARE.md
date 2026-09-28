@@ -1,21 +1,30 @@
-# Verificare V3.7.2
+# Verificare V3.8
 
-Testat în Microsoft Edge headless cu Playwright, fără apeluri Microsoft.
+Microsoft Edge headless / Playwright. Răspunsurile Teams, MSAL, Microsoft Graph și descărcarea fișierului au fost simulate, fără acces la conturi reale și fără cereri de scriere în Microsoft 365.
 
-- Secțiunile Date lecție, Cod inițial și Help se deschid independent.
-- Plierea și redeschiderea păstrează textul introdus.
-- Comenzile Space și Enter funcționează pe anteturile secțiunilor.
-- Salvarea fără titlu sau cod deschide secțiunea necesară și focalizează câmpul.
-- Verificare vizuală desktop 1280×900 și mobil 390×844; fără depășire orizontală a formularului.
-- Salvare, selectare, deschidere explicită, previzualizare, cerință, păstrarea numelui lucrării — PASS.
-- Trei niveluri Help și păstrarea nivelului maxim utilizat — PASS.
-- Reset: fără modificări, anulare și confirmare — PASS.
-- Lecții locale după reîncărcare și toate cele 13 lecții standard — PASS.
-- Export, ștergere și reimport JSON — PASS.
+## Biblioteca clasei — trecut
+- Înainte de conectare: nicio cerere pentru bibliotecă.
+- După conectare: verificare de apartenență, fișierul clasei corecte, cod/cerință/cele trei indicii.
+- Tokenul apare numai în cererile Graph; descărcarea temporară nu primește Authorization, cookie-uri sau referer.
+- Aceleași ID-uri în biblioteca locală și cea centrală rămân independente.
+- Actualizarea păstrează lucrarea și cere reselectarea lecției; Help și Reset nu folosesc o lecție implicită greșită.
+- Exportă pentru clasă produce lectii.json cu biblioteca locală, nu o copie a bibliotecii centrale.
+- Fișier lipsă, acces refuzat, utilizator nemembru, sesiune expirată, JSON/structură invalide, depășirea limitei de dimensiune și eroare de descărcare: mesaje și păstrarea lucrării locale.
+- Respingere pentru structură de tip array, identificatori de tip __proto__, format greșit și indicii incorecte.
+- Biblioteca se încarcă și dacă citirea temelor eșuează; reconectarea eșuată elimină opțiunile centrale vechi.
+- În afara Teams: nu se ghicește o clasă și nu se citește niciun fișier central.
+- Două clase folosesc propriile biblioteci, fără amestecarea identificatorilor de grup.
+- Verificare vizuală desktop 1280×900 și mobil 390×844, fără depășire orizontală.
 - Nicio eroare JavaScript de pagină în scenariile testate.
 
-Față de V3.7.1 sunt modificate app.js, index.html, style.css și documentația. Toate celelalte fișiere, inclusiv graph.js, teams-init.js și config.html, sunt identice octet cu octet. Autentificarea și predarea reală în Teams nu au fost retestate cu un cont Microsoft.
+## Funcțiile existente — trecut
+Salvare locală, deschidere explicită, selectare, reîncărcare, cerință, previzualizare, numele lucrării, Help/maxim atins, Reset cu anulare/confirmare, 13 lecții standard, export/ștergere/import, secțiuni pliabile, validare și tastatură.
 
-## Verificare după instalare
+## Integritate
+După eliminarea celor patru puncte de integrare ale noii biblioteci, graph.js este identic textual cu V3.7.2. Nu au fost schimbate SCOPES, autentificarea, atașarea ori predarea. teams-init.js, config.html, privacy.html și terms.html sunt identice octet cu octet.
 
-Înlocuiește fișierele din repository și verifică V3.7.2 în antet. Deschide Editor profesor, extinde Cod inițial și Help, apoi pliază și redeschide secțiunile. Verifică păstrarea textului și salvează lecția. Datele locale folosesc cheia V3.7 existentă; păstrează aceeași adresă și același browser.
+## Reexecutare pentru dezvoltatori
+Testul tests/class-library.cjs folosește pachetul Playwright și Microsoft Edge instalat. Cu Node și Playwright disponibile: node tests/class-library.cjs. Nu contactează Microsoft; cererile sunt interceptate.
+
+## Verificare necesară în școală
+Instalarea V3.8, configurarea folderului SharePoint și încărcarea unui lectii.json real; apoi conectare ca profesor, ca elev membru și verificarea refuzului pentru un cont nemembru. Elevul trebuie să poată citi, dar nu modifica fișierul. Verifică o atașare/predare în Teams. Aceste verificări reale nu au fost efectuate aici.

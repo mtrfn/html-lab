@@ -2,10 +2,10 @@
 <html lang="ro">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HTML Lab V3.7.2</title><link rel="stylesheet" href="style.css?v=372">
+<title>HTML Lab V3.8</title><link rel="stylesheet" href="style.css?v=380">
 </head>
 <body>
-<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.7.2</b></header>
+<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.8</b></header>
 <main>
 <section class="graph">
 <div>
@@ -34,6 +34,11 @@
 </div>
 </section>
 
+<section class="graph class-library" aria-labelledby="classLibraryTitle">
+<h2 id="classLibraryTitle">Biblioteca clasei</h2>
+<p id="classLibraryStatus" role="status">Conectează-te la Microsoft pentru lecțiile clasei.</p>
+<button id="refreshClassLibrary" type="button" disabled>Actualizează lecțiile</button>
+</section>
 <section class="bar file">
 <label>Numele lucrării:</label><input id="filename" value="lucrare.html">
 <button id="open">📂 Deschide .html</button><input id="picker" type="file" accept=".html,.htm,text/html" hidden>
@@ -47,6 +52,7 @@
 <optgroup label="HTML avansat"><option value="attributes">Atributele etichetelor</option><option value="forms">Formulare și controale</option><option value="iframe">iframe – conținut încorporat</option></optgroup>
 <optgroup label="Layout"><option value="frames">Frame / Frameset (istoric)</option><option value="grid">CSS Grid – layout modern</option></optgroup>
 <optgroup label="Proiecte"><option value="project">Mini-site</option></optgroup>
+<optgroup id="classLessonsGroup" label="Lecțiile clasei" hidden></optgroup>
 <optgroup id="customLessonsGroup" label="Lecțiile profesorului" hidden></optgroup>
 </select>
 <button id="openLesson" type="button" title="Încarcă din nou codul inițial al lecției selectate">Deschide lecția</button>
@@ -70,7 +76,7 @@
 <div class="panel"><h2>Cod HTML</h2><textarea id="editor" spellcheck="false"></textarea></div>
 <div class="panel"><h2>Rezultat</h2><iframe id="preview" sandbox="allow-forms allow-modals"></iframe></div>
 </section>
-<p class="note">V3.7.2 organizează Editorul profesorului în secțiuni pliabile. V3.7.1 permite deschiderea explicită a lecției selectate și sincronizează Ajutorul după salvare. V3.7 adaugă Editorul de lecții/Help pentru profesor și protecție la Reset. V3.6 a adăugat Biblioteca de lecții, organizată progresiv, păstrând ajutorul contextual în trei trepte. HTML Lab atașează pagina HTML și o copie text a codului-sursă, astfel încât profesorul să poată verifica atât rezultatul, cât și codul.</p>
+<p class="note">V3.8 adaugă biblioteca privată a clasei, disponibilă după conectarea Microsoft. V3.7.2 organizează Editorul profesorului în secțiuni pliabile. V3.7.1 permite deschiderea explicită a lecției selectate și sincronizează Ajutorul după salvare. V3.7 adaugă Editorul de lecții/Help pentru profesor și protecție la Reset. V3.6 a adăugat Biblioteca de lecții, organizată progresiv, păstrând ajutorul contextual în trei trepte. HTML Lab atașează pagina HTML și o copie text a codului-sursă, astfel încât profesorul să poată verifica atât rezultatul, cât și codul.</p>
 </main>
 
 <div id="teacherModal" class="modal hidden">
@@ -105,8 +111,10 @@
       <button id="saveLesson" type="button" class="primary">💾 Salvează lecția</button>
       <button id="deleteLesson" type="button">🗑 Șterge lecția</button>
       <button id="exportLessons" type="button">⬇ Exportă JSON</button>
+      <button id="exportClassLibrary" type="button">Exportă pentru clasă</button>
       <button id="importLessons" type="button">⬆ Importă JSON</button><input id="importLessonsFile" type="file" accept="application/json,.json" hidden>
     </div>
+    <p class="muted">Pentru distribuire, exportă toate lecțiile locale și încarcă fișierul în SharePoint-ul clasei. <a href="DISTRIBUIRE.html" target="_blank" rel="noopener">Ghid de distribuire</a></p>
     <p id="teacherStatus" class="teacher-status" role="status"></p>
   </div>
 </div>
@@ -122,6 +130,6 @@
 </div>
 <script src="https://res.cdn.office.net/teams-js/2.56.0/js/MicrosoftTeams.min.js"></script>
 <script src="teams-init.js"></script>
-<script src="app.js?v=372"></script>
-<script type="module" src="graph.js?v=370"></script>
+<script src="app.js?v=380"></script>
+<script type="module" src="graph.js?v=380"></script>
 </body></html>

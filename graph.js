@@ -1,3 +1,4 @@
+import {loadClassLibrary,resetClassLibrary} from "./class-library.js?v=380";
 import { createNestablePublicClientApplication, InteractionRequiredAuthError } from "https://esm.sh/@azure/msal-browser@5.22.0";
 
 const CLIENT_ID="186ef62f-0e5b-47c2-ab13-2a33600f55cd";
@@ -223,10 +224,12 @@ if(submitModal) submitModal.addEventListener("click",e=>{if(e.target===submitMod
 document.addEventListener("keydown",e=>{if(e.key==="Escape" && submitModal?.style.display==="flex")submitModal.style.display="none";});
 
 async function load(){
+ resetClassLibrary();
  connectBtn.disabled=true;refreshBtn.disabled=true;
  try{
   status("Obțin tokenul Microsoft Graph…");const a=await token();currentToken=a.accessToken;
   accountEl.textContent=`Conectat: ${a.account?.name||a.account?.username||"utilizator Microsoft"}`;
+  void loadClassLibrary(teamsInfo?.teamId,token);
   status("Citesc temele utilizatorului…");
   const d=await graph("/education/me/assignments?$select=id,classId,displayName,dueDateTime,status&$expand=submissions($select=id,status,submittedDateTime,reassignedDateTime,returnedDateTime,resourcesFolderUrl)&$orderby=dueDateTime desc&$top=100",currentToken);
   let items=d.value||[]; const teamId=teamsInfo?.teamId;
@@ -240,3 +243,4 @@ async function load(){
 }
 connectBtn.onclick=load;refreshBtn.onclick=load;attachBtn.onclick=attachWork;submitBtn.onclick=submitWork;
 init().catch(e=>status("Inițializarea a eșuat: "+(e.message||e),true));
+document.getElementById("refreshClassLibrary").onclick=()=>loadClassLibrary(teamsInfo?.teamId,token);
