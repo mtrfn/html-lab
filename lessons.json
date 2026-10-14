@@ -1,0 +1,110 @@
+{
+  "format": "DB-Lab-lessons",
+  "version": 1,
+  "lessons": [
+    {
+      "id": "select",
+      "title": "Primul SELECT",
+      "category": "1 · Citirea datelor",
+      "task": "Afișează numele și prenumele tuturor elevilor. Rezultatul trebuie să conțină doar aceste două coloane.",
+      "setupSQL": "CREATE TABLE clase(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL UNIQUE);\nCREATE TABLE elevi(id INTEGER PRIMARY KEY, nume TEXT NOT NULL, prenume TEXT NOT NULL, clasa_id INTEGER NOT NULL REFERENCES clase(id));\nCREATE TABLE discipline(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL);\nCREATE TABLE note(id INTEGER PRIMARY KEY, elev_id INTEGER NOT NULL REFERENCES elevi(id), disciplina_id INTEGER NOT NULL REFERENCES discipline(id), nota INTEGER NOT NULL CHECK(nota BETWEEN 1 AND 10), data_notarii TEXT NOT NULL);\nINSERT INTO clase VALUES(1,'XI A'),(2,'XI B');\nINSERT INTO elevi VALUES(1,'Popescu','Andrei',1),(2,'Ionescu','Maria',1),(3,'Georgescu','Elena',2),(4,'Dumitru','Vlad',2);\nINSERT INTO discipline VALUES(1,'Informatică'),(2,'Matematică');\nINSERT INTO note VALUES(1,1,1,9,'2026-10-01'),(2,1,1,8,'2026-10-08'),(3,2,1,10,'2026-10-01'),(4,3,2,7,'2026-10-02'),(5,4,1,8,'2026-10-03');\n",
+      "starterSQL": "-- Scrie o interogare care citește numele și prenumele.\n",
+      "hints": [
+        "Pornește de la tabelul elevi. SELECT stabilește coloanele din rezultat.",
+        "SELECT coloana1, coloana2\nFROM tabel;",
+        "SELECT nume, prenume FROM elevi;"
+      ]
+    },
+    {
+      "id": "where",
+      "title": "Filtrare cu WHERE",
+      "category": "1 · Citirea datelor",
+      "task": "Afișează elevii din clasa cu id 1. Include id, nume, prenume și clasa_id.",
+      "setupSQL": "CREATE TABLE clase(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL UNIQUE);\nCREATE TABLE elevi(id INTEGER PRIMARY KEY, nume TEXT NOT NULL, prenume TEXT NOT NULL, clasa_id INTEGER NOT NULL REFERENCES clase(id));\nCREATE TABLE discipline(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL);\nCREATE TABLE note(id INTEGER PRIMARY KEY, elev_id INTEGER NOT NULL REFERENCES elevi(id), disciplina_id INTEGER NOT NULL REFERENCES discipline(id), nota INTEGER NOT NULL CHECK(nota BETWEEN 1 AND 10), data_notarii TEXT NOT NULL);\nINSERT INTO clase VALUES(1,'XI A'),(2,'XI B');\nINSERT INTO elevi VALUES(1,'Popescu','Andrei',1),(2,'Ionescu','Maria',1),(3,'Georgescu','Elena',2),(4,'Dumitru','Vlad',2);\nINSERT INTO discipline VALUES(1,'Informatică'),(2,'Matematică');\nINSERT INTO note VALUES(1,1,1,9,'2026-10-01'),(2,1,1,8,'2026-10-08'),(3,2,1,10,'2026-10-01'),(4,3,2,7,'2026-10-02'),(5,4,1,8,'2026-10-03');\n",
+      "starterSQL": "SELECT * FROM elevi\n-- Completează condiția de filtrare.\n;",
+      "hints": [
+        "Coloana clasa_id arată clasa fiecărui elev.",
+        "SELECT * FROM elevi\nWHERE clasa_id = valoare;",
+        "SELECT * FROM elevi WHERE clasa_id = 1;"
+      ]
+    },
+    {
+      "id": "order",
+      "title": "Sortare și limitare",
+      "category": "1 · Citirea datelor",
+      "task": "Afișează primii doi elevi în ordine alfabetică după nume, apoi după prenume.",
+      "setupSQL": "CREATE TABLE clase(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL UNIQUE);\nCREATE TABLE elevi(id INTEGER PRIMARY KEY, nume TEXT NOT NULL, prenume TEXT NOT NULL, clasa_id INTEGER NOT NULL REFERENCES clase(id));\nCREATE TABLE discipline(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL);\nCREATE TABLE note(id INTEGER PRIMARY KEY, elev_id INTEGER NOT NULL REFERENCES elevi(id), disciplina_id INTEGER NOT NULL REFERENCES discipline(id), nota INTEGER NOT NULL CHECK(nota BETWEEN 1 AND 10), data_notarii TEXT NOT NULL);\nINSERT INTO clase VALUES(1,'XI A'),(2,'XI B');\nINSERT INTO elevi VALUES(1,'Popescu','Andrei',1),(2,'Ionescu','Maria',1),(3,'Georgescu','Elena',2),(4,'Dumitru','Vlad',2);\nINSERT INTO discipline VALUES(1,'Informatică'),(2,'Matematică');\nINSERT INTO note VALUES(1,1,1,9,'2026-10-01'),(2,1,1,8,'2026-10-08'),(3,2,1,10,'2026-10-01'),(4,3,2,7,'2026-10-02'),(5,4,1,8,'2026-10-03');\n",
+      "starterSQL": "-- Folosește ORDER BY și LIMIT.\n",
+      "hints": [
+        "Sortarea se face înaintea limitării numărului de rânduri.",
+        "SELECT ... FROM ...\nORDER BY coloana1 ASC, coloana2 ASC\nLIMIT numar;",
+        "SELECT nume, prenume FROM elevi\nORDER BY nume, prenume LIMIT 2;"
+      ]
+    },
+    {
+      "id": "join",
+      "title": "Elevii și clasele lor",
+      "category": "2 · Relații și agregări",
+      "task": "Afișează numele, prenumele și denumirea clasei pentru fiecare elev, folosind JOIN.",
+      "setupSQL": "CREATE TABLE clase(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL UNIQUE);\nCREATE TABLE elevi(id INTEGER PRIMARY KEY, nume TEXT NOT NULL, prenume TEXT NOT NULL, clasa_id INTEGER NOT NULL REFERENCES clase(id));\nCREATE TABLE discipline(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL);\nCREATE TABLE note(id INTEGER PRIMARY KEY, elev_id INTEGER NOT NULL REFERENCES elevi(id), disciplina_id INTEGER NOT NULL REFERENCES discipline(id), nota INTEGER NOT NULL CHECK(nota BETWEEN 1 AND 10), data_notarii TEXT NOT NULL);\nINSERT INTO clase VALUES(1,'XI A'),(2,'XI B');\nINSERT INTO elevi VALUES(1,'Popescu','Andrei',1),(2,'Ionescu','Maria',1),(3,'Georgescu','Elena',2),(4,'Dumitru','Vlad',2);\nINSERT INTO discipline VALUES(1,'Informatică'),(2,'Matematică');\nINSERT INTO note VALUES(1,1,1,9,'2026-10-01'),(2,1,1,8,'2026-10-08'),(3,2,1,10,'2026-10-01'),(4,3,2,7,'2026-10-02'),(5,4,1,8,'2026-10-03');\n",
+      "starterSQL": "SELECT e.nume, e.prenume\nFROM elevi AS e\n-- Adaugă legătura cu tabelul clase.\n;",
+      "hints": [
+        "Leagă elevi.clasa_id de clase.id. Prefixele e și c identifică tabelele.",
+        "FROM elevi AS e\nJOIN clase AS c ON e.clasa_id = c.id",
+        "SELECT e.nume, e.prenume, c.denumire AS clasa\nFROM elevi e JOIN clase c ON e.clasa_id = c.id;"
+      ]
+    },
+    {
+      "id": "group",
+      "title": "Media notelor",
+      "category": "2 · Relații și agregări",
+      "task": "Calculează media notelor pentru fiecare elev care are note. Afișează numele, prenumele și media rotunjită la două zecimale.",
+      "setupSQL": "CREATE TABLE clase(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL UNIQUE);\nCREATE TABLE elevi(id INTEGER PRIMARY KEY, nume TEXT NOT NULL, prenume TEXT NOT NULL, clasa_id INTEGER NOT NULL REFERENCES clase(id));\nCREATE TABLE discipline(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL);\nCREATE TABLE note(id INTEGER PRIMARY KEY, elev_id INTEGER NOT NULL REFERENCES elevi(id), disciplina_id INTEGER NOT NULL REFERENCES discipline(id), nota INTEGER NOT NULL CHECK(nota BETWEEN 1 AND 10), data_notarii TEXT NOT NULL);\nINSERT INTO clase VALUES(1,'XI A'),(2,'XI B');\nINSERT INTO elevi VALUES(1,'Popescu','Andrei',1),(2,'Ionescu','Maria',1),(3,'Georgescu','Elena',2),(4,'Dumitru','Vlad',2);\nINSERT INTO discipline VALUES(1,'Informatică'),(2,'Matematică');\nINSERT INTO note VALUES(1,1,1,9,'2026-10-01'),(2,1,1,8,'2026-10-08'),(3,2,1,10,'2026-10-01'),(4,3,2,7,'2026-10-02'),(5,4,1,8,'2026-10-03');\n",
+      "starterSQL": "-- Leagă elevii de note și grupează rezultatele.\n",
+      "hints": [
+        "AVG calculează media. Grupează după identificatorul elevului pentru a nu uni elevi cu același nume.",
+        "SELECT ..., ROUND(AVG(n.nota), 2) AS media\nFROM ... JOIN ... ON ...\nGROUP BY e.id;",
+        "SELECT e.nume, e.prenume, ROUND(AVG(n.nota), 2) AS media\nFROM elevi e JOIN note n ON n.elev_id = e.id\nGROUP BY e.id;"
+      ]
+    },
+    {
+      "id": "null",
+      "title": "NULL și lipsa datelor",
+      "category": "3 · Modificarea datelor",
+      "task": "Adaugă o carte fără autor (NULL) și o carte cu autorul ca text gol. Afișează doar cartea cu autor NULL.",
+      "setupSQL": "CREATE TABLE carti(id INTEGER PRIMARY KEY, titlu TEXT NOT NULL, autor TEXT);",
+      "starterSQL": "-- Adaugă două cărți, apoi filtrează cu IS NULL.\n",
+      "hints": [
+        "NULL înseamnă lipsa valorii. Textul gol este o valoare diferită.",
+        "INSERT INTO carti(titlu, autor) VALUES (..., NULL);\nSELECT * FROM carti WHERE autor IS NULL;",
+        "INSERT INTO carti(titlu, autor) VALUES ('Carte fără autor', NULL);\nINSERT INTO carti(titlu, autor) VALUES ('Autor gol', '');\nSELECT * FROM carti WHERE autor IS NULL;"
+      ]
+    },
+    {
+      "id": "insert",
+      "title": "Adăugare cu cheie externă",
+      "category": "3 · Modificarea datelor",
+      "task": "Adaugă eleva Ana Marin în clasa XI B. Lasă SQLite să genereze id-ul. Verifică rezultatul prin SELECT.",
+      "setupSQL": "CREATE TABLE clase(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL UNIQUE);\nCREATE TABLE elevi(id INTEGER PRIMARY KEY, nume TEXT NOT NULL, prenume TEXT NOT NULL, clasa_id INTEGER NOT NULL REFERENCES clase(id));\nCREATE TABLE discipline(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL);\nCREATE TABLE note(id INTEGER PRIMARY KEY, elev_id INTEGER NOT NULL REFERENCES elevi(id), disciplina_id INTEGER NOT NULL REFERENCES discipline(id), nota INTEGER NOT NULL CHECK(nota BETWEEN 1 AND 10), data_notarii TEXT NOT NULL);\nINSERT INTO clase VALUES(1,'XI A'),(2,'XI B');\nINSERT INTO elevi VALUES(1,'Popescu','Andrei',1),(2,'Ionescu','Maria',1),(3,'Georgescu','Elena',2),(4,'Dumitru','Vlad',2);\nINSERT INTO discipline VALUES(1,'Informatică'),(2,'Matematică');\nINSERT INTO note VALUES(1,1,1,9,'2026-10-01'),(2,1,1,8,'2026-10-08'),(3,2,1,10,'2026-10-01'),(4,3,2,7,'2026-10-02'),(5,4,1,8,'2026-10-03');\n",
+      "starterSQL": "-- Consultă tabelul clase înainte de INSERT.\nSELECT * FROM clase;",
+      "hints": [
+        "XI B are id 2 în baza inițială. Nu poți folosi o clasă inexistentă.",
+        "INSERT INTO elevi(nume, prenume, clasa_id)\nVALUES ('Nume', 'Prenume', id_clasa);",
+        "INSERT INTO elevi(nume, prenume, clasa_id) VALUES ('Marin', 'Ana', 2);\nSELECT * FROM elevi WHERE nume = 'Marin';"
+      ]
+    },
+    {
+      "id": "update",
+      "title": "UPDATE cu condiție",
+      "category": "3 · Modificarea datelor",
+      "task": "Mută elevul cu id 1 în clasa XI B. Modifică doar înregistrarea acestui elev și verifică rezultatul.",
+      "setupSQL": "CREATE TABLE clase(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL UNIQUE);\nCREATE TABLE elevi(id INTEGER PRIMARY KEY, nume TEXT NOT NULL, prenume TEXT NOT NULL, clasa_id INTEGER NOT NULL REFERENCES clase(id));\nCREATE TABLE discipline(id INTEGER PRIMARY KEY, denumire TEXT NOT NULL);\nCREATE TABLE note(id INTEGER PRIMARY KEY, elev_id INTEGER NOT NULL REFERENCES elevi(id), disciplina_id INTEGER NOT NULL REFERENCES discipline(id), nota INTEGER NOT NULL CHECK(nota BETWEEN 1 AND 10), data_notarii TEXT NOT NULL);\nINSERT INTO clase VALUES(1,'XI A'),(2,'XI B');\nINSERT INTO elevi VALUES(1,'Popescu','Andrei',1),(2,'Ionescu','Maria',1),(3,'Georgescu','Elena',2),(4,'Dumitru','Vlad',2);\nINSERT INTO discipline VALUES(1,'Informatică'),(2,'Matematică');\nINSERT INTO note VALUES(1,1,1,9,'2026-10-01'),(2,1,1,8,'2026-10-08'),(3,2,1,10,'2026-10-01'),(4,3,2,7,'2026-10-02'),(5,4,1,8,'2026-10-03');\n",
+      "starterSQL": "-- Folosește o condiție WHERE care identifică un singur elev.\n",
+      "hints": [
+        "Fără WHERE, UPDATE poate modifica toate înregistrările tabelului.",
+        "UPDATE elevi SET clasa_id = valoare WHERE id = identificator;",
+        "UPDATE elevi SET clasa_id = 2 WHERE id = 1;\nSELECT * FROM elevi WHERE id = 1;"
+      ]
+    }
+  ]
+}

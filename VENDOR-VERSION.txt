@@ -1,0 +1,2 @@
+SQLite 3.49.1
+Bundled from sql.js.org/dist on 2026-10-13.

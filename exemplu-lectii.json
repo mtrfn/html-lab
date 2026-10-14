@@ -1,0 +1,19 @@
+{
+  "format": "DB-Lab-lessons",
+  "version": 1,
+  "lessons": [
+    {
+      "id": "biblioteca-carti",
+      "title": "Biblioteca mea de cărți",
+      "category": "Lecțiile profesorului",
+      "task": "Afișează titlurile cărților publicate după anul 1950, în ordine alfabetică.",
+      "setupSQL": "CREATE TABLE carti(id INTEGER PRIMARY KEY, titlu TEXT NOT NULL, autor TEXT, an INTEGER);\nINSERT INTO carti(titlu, autor, an) VALUES ('Amintiri din copilărie', 'Ion Creangă', 1892), ('Moromeții', 'Marin Preda', 1955), ('Cireșarii', 'Constantin Chiriță', 1956);",
+      "starterSQL": "-- Afișează titlurile cerute.\n",
+      "hints": [
+        "Folosește WHERE pentru an și ORDER BY pentru titlu.",
+        "SELECT titlu FROM carti WHERE an > numar ORDER BY titlu;",
+        "SELECT titlu FROM carti WHERE an > 1950 ORDER BY titlu;"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.19",
+  "version": "1.3.0",
+  "id": "2b443987-4ca4-489d-9608-dfb916c9134e",
+  "developer": {
+    "name": "DB-Lab",
+    "websiteUrl": "https://mtrfn.github.io/db-lab/",
+    "privacyUrl": "https://mtrfn.github.io/db-lab/privacy.html",
+    "termsOfUseUrl": "https://mtrfn.github.io/db-lab/terms.html"
+  },
+  "name": {
+    "short": "DB-Lab",
+    "full": "DB-Lab · Laborator SQLite"
+  },
+  "description": {
+    "short": "Lecții SQL și laborator de baze de date pentru clasă.",
+    "full": "Exersează SQL, editează date prin formulare și deschide lecțiile clasei din SharePoint. Progresul se salvează local. Profesorii confirmați ai clasei pot pregăti lecții în atelier."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#123345",
+  "configurableTabs": [
+    {
+      "configurationUrl": "https://mtrfn.github.io/db-lab/config.html",
+      "canUpdateConfiguration": true,
+      "scopes": [
+        "team"
+      ],
+      "context": [
+        "channelTab"
+      ]
+    }
+  ],
+  "validDomains": [
+    "mtrfn.github.io"
+  ],
+  "webApplicationInfo": {
+    "id": "2b443987-4ca4-489d-9608-dfb916c9134e"
+  }
+}

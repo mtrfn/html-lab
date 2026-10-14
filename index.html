@@ -1,136 +1,24 @@
-<!doctype html>
-<html lang="ro">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HTML Lab V3.8.3</title><link rel="stylesheet" href="style.css?v=383">
-</head>
-<body>
-<header><div><h1>HTML Lab</h1><p>Colegiul Tehnic „Gheorghe Balș”</p></div><b>V3.8.3</b></header>
-<main>
-<section class="graph">
-<div>
-<h2>Microsoft Teams – Temele mele</h2>
-<p id="account">Neconectat la Microsoft Graph.</p>
-</div>
-<div class="graph-actions">
-<button id="connect" class="primary">🔐 Conectare Microsoft</button>
-<button id="refreshAssignments" disabled>🔄 Actualizează temele</button>
-</div>
-<p id="teacherAccessStatus" class="muted" role="status"></p>
-<div id="graphStatus" class="graph-status"></div>
-<div class="context-box">
-<p><b>Clasa Teams curentă:</b> <span id="teamName">Se detectează…</span></p>
-<p class="muted" id="teamHint"></p>
-</div>
-<div id="assignments" class="assignments"><p class="muted">După conectare, aici vor apărea temele clasei curente.</p></div>
-<div id="selection" class="selection hidden">
-<h3>Tema selectată</h3>
-<p id="selectedAssignment"></p>
-<p id="submissionInfo" class="muted">Predarea va fi verificată pentru contul curent.</p>
-<div id="turnInActions" class="turnin-actions hidden">
-  <button id="attachWork" type="button">📎 Atașează lucrarea</button>
-  <button id="submitWork" type="button" class="submit-btn" disabled>📤 Predă în Teams</button>
-</div>
-<p id="turnInStatus" class="muted"></p>
-</div>
-</section>
-
-<section class="graph class-library" aria-labelledby="classLibraryTitle">
-<h2 id="classLibraryTitle">Biblioteca clasei</h2>
-<p id="classLibraryStatus" role="status">Conectează-te la Microsoft pentru lecțiile clasei.</p>
-<button id="refreshClassLibrary" type="button" disabled>Actualizează lecțiile</button>
-</section>
-<section class="bar file">
-<label>Numele lucrării:</label><input id="filename" value="lucrare.html">
-<button id="open">📂 Deschide .html</button><input id="picker" type="file" accept=".html,.htm,text/html" hidden>
-<button id="download">📥 Descarcă .html</button>
-</section>
-<section class="bar">
-<select id="examples" aria-label="Biblioteca de lecții HTML">
-<optgroup label="Structura HTML"><option value="basic">Prima pagină</option><option value="headings">Titluri și paragrafe</option></optgroup>
-<optgroup label="Text"><option value="chars">Formatarea caracterelor</option></optgroup>
-<optgroup label="Conținut"><option value="lists">Liste</option><option value="links">Legături</option><option value="images">Imagini</option><option value="table">Tabele</option></optgroup>
-<optgroup label="HTML avansat"><option value="attributes">Atributele etichetelor</option><option value="forms">Formulare și controale</option><option value="iframe">iframe – conținut încorporat</option></optgroup>
-<optgroup label="Layout"><option value="frames">Frame / Frameset (istoric)</option><option value="grid">CSS Grid – layout modern</option></optgroup>
-<optgroup label="Proiecte"><option value="project">Mini-site</option></optgroup>
-<optgroup id="classLessonsGroup" label="Lecțiile clasei" hidden></optgroup>
-<optgroup id="customLessonsGroup" label="Lecțiile profesorului" hidden></optgroup>
-</select>
-<button id="openLesson" type="button" title="Încarcă din nou codul inițial al lecției selectate">Deschide lecția</button>
-<button id="run" class="primary">▶ Rulează</button><button id="save">💾 Salvează local</button><button id="reset">↺ Reset</button><button id="helpBtn" type="button" class="help-btn">💡 Ajutor</button><button id="teacherBtn" type="button" hidden disabled class="teacher-btn">👨‍🏫 Editor profesor</button><span id="status"></span>
-</section>
-
-<section id="helpPanel" class="help-panel hidden" aria-live="polite">
-  <div class="help-head">
-    <div><span class="help-kicker">Ajutor contextual</span><h2 id="helpTitle">💡 Ajutor</h2></div>
-    <button id="closeHelp" type="button" aria-label="Închide ajutorul">✕</button>
-  </div>
-  <div class="help-progress"><span id="helpLevelLabel">Indiciul 1 din 3</span><span id="helpUsage">Ajutor utilizat: 1/3</span></div>
-  <div id="helpContent" class="help-content"></div>
-  <div class="help-actions">
-    <button id="prevHelp" type="button" disabled>← Înapoi</button>
-    <button id="nextHelp" type="button" class="primary">Mai mult ajutor →</button>
-  </div>
-  <p class="help-note">Ajutorul explică și oferă exemple, dar nu modifică automat codul din editor.</p>
-</section>
-<section class="work">
-<div class="panel"><h2>Cod HTML</h2><textarea id="editor" spellcheck="false"></textarea></div>
-<div class="panel"><h2>Rezultat</h2><iframe id="preview" sandbox="allow-forms allow-modals"></iframe></div>
-</section>
-<p class="note">V3.8 adaugă biblioteca privată a clasei, disponibilă după conectarea Microsoft. V3.7.2 organizează Editorul profesorului în secțiuni pliabile. V3.7.1 permite deschiderea explicită a lecției selectate și sincronizează Ajutorul după salvare. V3.7 adaugă Editorul de lecții/Help pentru profesor și protecție la Reset. V3.6 a adăugat Biblioteca de lecții, organizată progresiv, păstrând ajutorul contextual în trei trepte. HTML Lab atașează pagina HTML și o copie text a codului-sursă, astfel încât profesorul să poată verifica atât rezultatul, cât și codul.</p>
-</main>
-
-<div id="teacherModal" class="modal hidden">
-  <div class="modal-card teacher-card" role="dialog" aria-modal="true" aria-labelledby="teacherTitle">
-    <div class="modal-head"><div><span class="help-kicker">Mod profesor</span><h2 id="teacherTitle">Editor de lecții și Help</h2></div><button id="closeTeacher" type="button" aria-label="Închide">✕</button></div>
-    <p class="muted">Creează o lecție fără să modifici JavaScript-ul. Lecțiile sunt salvate local în acest browser și pot fi exportate/importate ca JSON.</p>
-    <details class="teacher-section" open>
-      <summary>Date lecție</summary>
-      <div class="teacher-grid">
-      <label>Titlul lecției<input id="lessonTitle" placeholder="Ex.: Imagini și legături"></label>
-      <label>Categoria<input id="lessonCategory" placeholder="Ex.: Conținut"></label>
-      <label class="wide">Cerința pentru elev<textarea id="lessonTask" rows="3" placeholder="Ex.: Realizează o pagină care conține..."></textarea></label>
-      </div>
-    </details>
-    <details class="teacher-section">
-      <summary>Cod inițial</summary>
-      <div class="teacher-grid">
-      <label class="wide">Cod HTML inițial<textarea id="lessonCode" rows="8" spellcheck="false" placeholder="<!DOCTYPE html>..."></textarea></label>
-      </div>
-    </details>
-    <details class="teacher-section">
-      <summary>Help</summary>
-      <div class="teacher-grid">
-      <label class="wide">Indiciul 1 — orientare<textarea id="lessonHint1" rows="3"></textarea></label>
-      <label class="wide">Indiciul 2 — sintaxă<textarea id="lessonHint2" rows="3"></textarea></label>
-      <label class="wide">Indiciul 3 — exemplu<textarea id="lessonHint3" rows="4"></textarea></label>
-    </div>
-    </details>
-    <div class="teacher-actions">
-      <button id="newLesson" type="button">＋ Lecție nouă</button>
-      <button id="loadCurrentLesson" type="button">↙ Preia lecția curentă</button>
-      <button id="saveLesson" type="button" class="primary">💾 Salvează lecția</button>
-      <button id="deleteLesson" type="button">🗑 Șterge lecția</button>
-      <button id="exportLessons" type="button">⬇ Exportă JSON</button>
-      <button id="exportClassLibrary" type="button">Exportă pentru clasă</button>
-      <button id="importLessons" type="button">⬆ Importă JSON</button><input id="importLessonsFile" type="file" accept="application/json,.json" hidden>
-    </div>
-    <p class="muted">Pentru distribuire, exportă toate lecțiile locale și încarcă fișierul în SharePoint-ul clasei. <a href="DISTRIBUIRE.html" target="_blank" rel="noopener">Ghid de distribuire</a></p>
-    <p id="teacherStatus" class="teacher-status" role="status"></p>
-  </div>
-</div>
-<div id="submitConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;padding:20px">
-  <div role="dialog" aria-modal="true" aria-labelledby="submitConfirmTitle" style="width:min(520px,100%);background:white;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.25);padding:22px">
-    <h3 id="submitConfirmTitle" style="margin:0 0 10px">Confirmă predarea</h3>
-    <p id="submitConfirmText" style="margin:0 0 18px;line-height:1.45"></p>
-    <div style="display:flex;gap:10px;justify-content:flex-end">
-      <button id="cancelSubmit" type="button">Anulează</button>
-      <button id="confirmSubmit" type="button" class="submit-btn">📤 Confirmă predarea</button>
-    </div>
-  </div>
-</div>
-<script src="https://res.cdn.office.net/teams-js/2.56.0/js/MicrosoftTeams.min.js"></script>
-<script src="teams-init.js"></script>
-<script src="app.js?v=383"></script>
-<script type="module" src="graph.js?v=383"></script>
-</body></html>
+<!doctype html><html lang="ro"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="microsoft-config.js?v=1.4.0"></script><script src="host.js?v=1.4.0"></script><title>DB-Lab V1.4.0</title><link rel="stylesheet" href="style.css?v=1.4.0"><body><header><div><b>DB<span>-Lab</span></b><small>V1.4.0 · Laborator SQLite</small></div><input id="name" value="Catalog școlar" aria-label="Numele proiectului"><span id="saved">Se încarcă…</span><button id="new">Proiect nou</button><button id="demo">Catalog / Resetare</button><button id="import">Import</button><button id="export">Export proiect</button><button id="sqlite">Export SQLite</button><input id="file" type="file" hidden accept=".json,.sqlite,.db"></header><div id="microsoftPanel" class="microsoft-panel"><div><b>Clasa Teams</b> <span id="teamsClassName"></span><p id="microsoftAccount"></p></div><div id="teamsActions" class="bar"><button id="connectMicrosoft" disabled>Conectare Microsoft</button><button id="refreshClassLessons" disabled>Actualizează lecțiile clasei</button><button id="closeMicrosoft" disabled>Închide sesiunea DB-Lab</button></div><p id="microsoftStatus" role="status">Verific mediul aplicației…</p><p id="classLibraryStatus" role="status"></p><p id="teamsLocalNote" hidden><a href="CONFIGURARE-TEAMS.html" target="_blank" rel="noopener">Configurare Microsoft 365 pentru administrator</a> · Biblioteca locală rămâne disponibilă mai jos.</p></div><main><aside><h3>Baza de date</h3><p>Selectează un tabel pentru structură și date.</p><div id="tables"></div><hr><p>Lucrările se salvează în acest browser. Folosește Export pentru a le muta pe alt calculator.</p></aside><article><section id="lessonContext" hidden aria-labelledby="activeLessonTitle"><div class="lesson-heading"><div><small>LECȚIE ÎN LUCRU · SALVARE LOCALĂ</small><h2 id="activeLessonTitle"></h2></div><button id="returnProject">Revino la proiectul liber</button></div><p id="activeLessonTask" class="multiline"></p><div class="bar"><button id="lessonHelp">Ajutor în 3 trepte</button><button id="resetLesson">Resetează lecția</button><span id="hintUsage"></span></div></section><nav><button data-tab="sql" class="active">Editor SQL</button><button data-tab="structure">Structură</button><button data-tab="data">Date</button><button data-tab="erd">Diagramă ERD</button><button data-tab="lessons">Lecții SQL</button><button data-tab="author">Atelier de lecții</button><button data-tab="help">Ghid</button></nav><section id="sql"><h2>Experimentează cu SQL</h2><textarea id="editor" spellcheck="false" aria-label="Editor SQL">SELECT e.nume, e.prenume, c.denumire AS clasa
+FROM elevi e JOIN clase c ON e.clasa_id = c.id;</textarea><div class="bar"><button id="run" class="primary">▶ Execută</button><button id="stop">Oprește</button><span>Ctrl + Enter · se execută întregul script</span></div></section><section id="structure" hidden><h2>Structura tabelului <span class="selected"></span></h2><div id="schema"></div><div id="alter"><input id="rename" placeholder="Nume nou"><button id="renameTable">Redenumește tabel</button><button id="renameColumn">Redenumește câmp</button><button id="addColumn">Adaugă câmp</button></div><h3>Construiește un tabel</h3><input id="tableName" placeholder="Numele tabelului" value="carti"><div class="scroll"><table><thead><tr><th>Câmp</th><th>Tip</th><th>PK</th><th>Obligatoriu</th><th>Referință tabel.câmp</th><th></th></tr></thead><tbody id="fields"></tbody></table></div><button id="addField">+ Câmp</button><h3>SQL generat</h3><pre id="generated"></pre><button id="create" class="primary">Aplică: creează tabelul</button></section><section id="data" hidden><h2>Date: <span class="selected"></span></h2><p>Primele 200 de înregistrări. Modificarea vizuală necesită cheie primară; câmpurile calculate sunt doar pentru citire.</p><button id="insert">+ Înregistrare</button><div id="grid" class="scroll"></div></section><section id="erd" hidden aria-labelledby="erdTitle"><h2 id="erdTitle">Diagrama bazei de date</h2><p id="erdCount"></p><div class="bar"><button id="erdZoomOut" aria-label="Micșorează diagrama">−</button><span id="erdZoomLabel">100%</span><button id="erdZoomIn" aria-label="Mărește diagrama">+</button><button id="erdFit">Încadrează</button><button id="erdArrange">Aranjare automată</button></div><p>PK = cheie primară · FK = cheie externă. Trage antetul unui tabel pentru deplasare (sau selectează-l cu Tab și folosește săgețile). Zoom și derulare pentru navigare.</p><p id="erdEmpty">Baza nu conține tabele. Creează un tabel în Structură sau execută CREATE TABLE.</p><div id="erdViewport"><svg id="erdCanvas" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="Tabele și relații ale bazei SQLite"></svg></div><p id="erdDetails" role="status"></p><div id="erdRelations" class="bar"></div><p class="erd-note">Apar numai relațiile FOREIGN KEY declarate. Numele câmpurilor nu generează relații automat. Relațiile compuse sunt grupate în lista de mai sus. V1.4 nu deduce cardinalități 1:1 sau 1:N; săgețile arată referințele. Pozițiile sunt temporare și se rearanjează la redeschiderea proiectului.</p></section><section id="lessons" hidden aria-labelledby="lessonsHeading">
+<div class="lesson-heading"><div><small>ÎNVAȚĂ PAS CU PAS</small><h2 id="lessonsHeading">Biblioteca de lecții SQL</h2></div><span class="badge">V1.3 · lecții</span></div>
+<p>Fiecare lecție are o bază de pornire și propria lucrare salvată în acest browser. Alegerea din listă afișează enunțul; deschide lecția când ești pregătit.</p>
+<label for="lessonPicker">Alege o lecție</label><select id="lessonPicker"></select>
+<div id="lessonCard" hidden><h3 id="lessonPreviewTitle"></h3><p id="lessonPreviewTask" class="multiline"></p>
+<details><summary>Baza inițială și SQL-ul de pornire</summary><h4>Inițializarea bazei (se execută doar la pornire / resetare)</h4><pre id="lessonSetupPreview"></pre><h4>SQL pentru elev (nu se execută automat)</h4><pre id="lessonStarterPreview"></pre></details>
+<div class="bar"><button id="openLesson" class="primary">Deschide / continuă lecția</button><button id="restartSelected">Pornește de la început</button><button id="copyLesson">Copiază în atelier</button></div></div>
+<p id="libraryStatus" role="status">Se încarcă biblioteca…</p><hr>
+<h3>Lecțiile mele · import și export</h3><p>Bibliotecile sunt fișiere separate de proiecte. Importul adaugă lecții în listă; nu execută SQL și nu înlocuiește lucrarea curentă.</p>
+<div class="bar"><button id="importLessons">Importă bibliotecă</button><button id="exportLessons">Exportă lecțiile mele</button><button id="exportSelected">Exportă lecția selectată</button></div><input id="lessonFile" type="file" accept=".json" hidden>
+<p class="muted">În Teams, lecțiile clasei se încarcă din SharePoint după conectare. Profesorul exportă biblioteca și publică fișierul DB-Lab/lectii.json în documentele clasei. Progresul elevului rămâne local în V1.3.</p></section>
+<section id="author" hidden aria-labelledby="authorHeading"><small>PREGĂTIREA LECȚIILOR</small><h2 id="authorHeading">Atelier de lecții · editor local</h2>
+<p class="notice">În browserul obișnuit, atelierul este local. În Teams, el apare doar după confirmarea că predai la clasa curentă. Publicarea bibliotecii se face în SharePoint, conform permisiunilor clasei.</p>
+<label for="authorPicker">Lecții salvate în acest browser</label><select id="authorPicker"></select><div class="bar"><button id="editSavedLesson">Deschide în atelier</button><button id="newLessonDraft">Lecție nouă</button><button id="deleteLesson">Șterge lecția selectată</button></div>
+<form id="lessonAuthorForm"><details open><summary>Datele lecției</summary><label for="authorTitle">Titlu</label><input id="authorTitle" required maxlength="150"><label for="authorCategory">Categorie</label><input id="authorCategory" required maxlength="80" value="Lecțiile mele"><label for="authorTask">Enunț</label><textarea id="authorTask" class="prose" required maxlength="20000"></textarea></details>
+<details open><summary>Baza inițială și codul elevului</summary><label for="authorSetup">SQL pentru crearea și popularea bazei</label><textarea id="authorSetup" spellcheck="false" maxlength="200000" placeholder="CREATE TABLE ...; INSERT INTO ...;"></textarea><p class="muted">Poate fi gol dacă elevul trebuie să creeze baza. La verificare se execută într-o bază temporară, separată de proiectul tău.</p><label for="authorStarter">SQL de pornire în editorul elevului</label><textarea id="authorStarter" spellcheck="false" maxlength="100000" placeholder="-- Începe rezolvarea aici"></textarea></details>
+<details open><summary>Ajutor progresiv</summary><label for="authorHint1">1 · Indiciu</label><textarea id="authorHint1" class="prose" required maxlength="20000"></textarea><label for="authorHint2">2 · Sintaxă</label><textarea id="authorHint2" class="prose" required maxlength="20000"></textarea><label for="authorHint3">3 · Exemplu</label><textarea id="authorHint3" class="prose" required maxlength="20000"></textarea></details>
+<div class="bar"><button type="button" id="checkLesson">Verifică baza inițială</button><button type="submit" id="saveLesson" class="primary">Salvează lecția local</button></div><p id="authorStatus" role="status"></p><pre id="authorCheck" hidden></pre></form></section>
+<section id="help" hidden><h2>Primii pași</h2><p>În Lecții SQL selectezi un exercițiu și îl deschizi. Poți continua progresul salvat, cere ajutor în trei trepte și reveni la proiectul liber. Resetarea șterge progresul lecției numai după confirmare. În Atelier de lecții pregătești propriile enunțuri, baze și indicii, apoi le exporți într-o bibliotecă.</p><ol><li>Execută interogarea inițială.</li><li>Selectează un tabel din stânga și deschide Structură sau Date.</li><li>Creează un tabel vizual și urmărește comanda generată.</li><li>Exportă proiectul înainte să schimbi calculatorul.</li></ol><p>Exerciții: afișează elevii din XI A; ordonează elevii după nume; calculează media notelor pe elev.</p><pre>SELECT e.nume, ROUND(AVG(n.nota), 2) AS media
+FROM elevi e JOIN note n ON n.elev_id=e.id
+GROUP BY e.id;</pre><p>Dialect: SQLite. Folosește INTEGER PRIMARY KEY pentru identificatori automați, nu sintaxa MySQL AUTO_INCREMENT. Tipurile de bază: INTEGER, REAL, TEXT, BLOB, NUMERIC. Datele calendaristice pot fi stocate ca TEXT (AAAA-LL-ZZ).</p><p>În formularele de date, alege Valoare, NULL sau Implicit / automat. Textul gol este distinct de NULL. Listele de referințe afișează cheile existente. Verifică SQL-ul înainte de Aplică. Resetarea cere confirmare. SQL rulează pe o copie: la eroare sau oprire se păstrează starea anterioară.</p></section><footer><h3>Rezultate și mesaje</h3><p id="message" role="status">Inițializare…</p><div id="results" class="scroll"></div></footer></article></main><dialog id="rowDialog" aria-labelledby="rowTitle"><form id="rowForm"><h2 id="rowTitle"></h2><p>Alege valorile, verifică SQL-ul, apoi aplică modificarea. Implicit / automat omite câmpul la adăugare.</p><div id="rowReferences"></div><div id="rowFields"></div><h3>Previzualizare SQL</h3><pre id="rowPreview" aria-live="polite"></pre><p id="rowError" role="alert"></p><div class="bar"><button type="submit" id="rowApply" class="primary">Aplică</button><button type="button" id="rowCancel">Anulează</button></div></form></dialog><dialog id="lessonConfirm" aria-labelledby="lessonConfirmTitle"><h2 id="lessonConfirmTitle">Confirmă modificarea</h2><p id="lessonConfirmText"></p><div class="bar"><button id="lessonConfirmYes">Confirmă</button><button id="lessonConfirmNo" autofocus>Anulează</button></div></dialog><dialog id="hintDialog" aria-labelledby="hintTitle"><h2 id="hintTitle"></h2><p id="hintLevel"></p><pre id="hintText"></pre><div class="bar"><button id="previousHint">← Înapoi</button><button id="nextHint">Mai mult ajutor →</button><button id="closeHint">Închide</button></div></dialog>
+<dialog id="libraryReview" aria-labelledby="libraryReviewTitle"><h2 id="libraryReviewTitle">Importă biblioteca de lecții</h2><p id="libraryReviewText"></p><ul id="libraryReviewList"></ul><p id="libraryReviewError" role="alert"></p><div class="bar"><button id="confirmLibraryImport" class="primary">Importă lecțiile</button><button id="cancelLibraryImport">Anulează</button></div></dialog>
+<script src="teams-core.js?v=1.4.0"></script><script src="lesson-core.js?v=1.4.0"></script><script src="erd-core.js?v=1.4.0"></script><script src="erd.js?v=1.4.0"></script><script src="app.js?v=1.4.0"></script><script src="row-editor.js?v=1.4.0"></script><script src="lessons.js?v=1.4.0"></script><script type="module" src="microsoft.js?v=1.4.0"></script></body></html>
